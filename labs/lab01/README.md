@@ -1,3 +1,4 @@
+##### while IFS= read -r line; do echo "$line" | python3 -m json.tool; done < events.log 
 # Advanced Programming Techniques Lab
 
 ## Team Information
@@ -185,5 +186,6 @@ If we had used `argparse`, it would not need to be included in `requirements.txt
 - `pip show <package_name>`  
   Displays detailed information about a specific package.  
   Check the **Location** field to confirm it points to the venv directory and not the system Python.
+
 
 
