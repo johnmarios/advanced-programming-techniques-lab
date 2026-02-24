@@ -170,3 +170,12 @@ We used `click`.
 If we had used `argparse`, it would not need to be included in `requirements.txt` because it is part of Python’s standard library, while `click` must be included since it is a third-party package.
 
 ## RQ29
+- Using different dependency versions in `requirements.txt` can cause **inconsistent behavior** across environments.
+- Code may work for one team but fail for another.
+- Installation conflicts can occur.
+- Runtime errors may arise due to API changes or behavior differences between versions.
+- Security risks increase if some teams use outdated or unpatched dependencies.
+- Overall maintenance, debugging, and collaboration become more complex over time.
+  
+## RQ30
+
