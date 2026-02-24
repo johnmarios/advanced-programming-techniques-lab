@@ -178,4 +178,13 @@ If we had used `argparse`, it would not need to be included in `requirements.txt
 - Overall maintenance, debugging, and collaboration become more complex over time.
   
 ## RQ30
+### Verifying packages in a virtual environment
+
+- `pip list`  
+  Shows all installed packages in the currently active environment.  
+  If the venv is activated, it lists only the packages inside the venv.
+
+- `pip show <package_name>`  
+  Displays detailed information about a specific package.  
+  Check the **Location** field to confirm it points to the venv directory and not the system Python.
 
