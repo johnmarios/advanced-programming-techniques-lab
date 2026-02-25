@@ -14,14 +14,6 @@ def utc_now_iso() -> str:
         .isoformat(timespec="milliseconds")
         .replace("+00:00", "Z")
     )
-def ingest_time_iso() -> str:
-    '''creates a UTC timestamp in ISO 8601 format with milliseconds precision for ingest_time field'''
-    # Example: 2026-02-10T12:34:56.789Z
-    return (
-        datetime.now(timezone.utc)
-        .isoformat(timespec="milliseconds")
-        .replace("+00:00", "Z")
-    )
 
 def create_run_id() -> str:
     '''generates a unique run ID using UUID4'''
@@ -30,7 +22,7 @@ def create_run_id() -> str:
 
 def create_event(event_time: str, ingest_time: str, device_id: str, event_type: str, seq: int, run_id: str, deposit_total: int, deposit_delta: int = 1, starting_total: int = 0) -> dict:
     """Create a single event record dictionary."""
-
+    
     event = {
         "event_time": event_time,
         "ingest_time": ingest_time,
@@ -65,7 +57,7 @@ def parse_args():
     parser.add_argument("--out", required=True)
 
     parser.add_argument("--starting-total", type=int, default=0)
-    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--verbose", action="store_true") # if verbose appears in command-line, will be set to True, otherwise it will be False
     return parser.parse_args() # parse the command-line arguments and return them as a Namespace object
 
 def validate_args(args):
@@ -92,7 +84,6 @@ def main():
     run_id = create_run_id()
     deposit_total = args.starting_total
     written = 0 # counter for number of records successfully written to the output file 
-    event_time = utc_now_iso() # generate event_time once at the start of the run, all events in this run will have the same event_time
 
     try:
         # args.out is the output file path specified by the user, open it in append mode ("a") to add new events without overwriting existing content
@@ -102,20 +93,23 @@ def main():
 
                 if args.event_type == "deposit":
                     deposit_total += 1
+                    event_time = utc_now_iso() # update event_time for each deposit event to reflect the time of the event generation
+                    ingest_time = utc_now_iso() # ingest_time is the time when the event is generated and ingested into the system, it can be the same as event_time or slightly later depending on processing time
                     record = create_event(
                         device_id=args.device_id,
                         event_type="deposit",
-                        ingest_time=ingest_time_iso(),
+                        ingest_time=ingest_time,
                         seq=seq,
                         run_id=run_id,          
                         deposit_total=deposit_total,
                         event_time=event_time,
+                        count = args.count,
                     )
                 else:
                     record = create_event(
                         device_id=args.device_id,
                         event_type="heartbeat",
-                        ingest_time=ingest_time_iso(),
+                        ingest_time=ingest_time,
                         seq=seq,
                         run_id=run_id,
                         count = args.count,    
