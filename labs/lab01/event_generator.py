@@ -4,6 +4,7 @@ import sys
 import uuid
 import argparse
 import time
+from pathlib import Path
     
 
 def utc_now_iso() -> str:
@@ -19,6 +20,12 @@ def create_run_id() -> str:
     '''generates a unique run ID using UUID4'''
     run_id = str(uuid.uuid4())
     return run_id
+
+def append_jsonl_line(path: Path, record: dict) -> None:
+    # One JSON object per line, append-only
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record) + "\n")
+
 
 def create_event(event_time: str, ingest_time: str, device_id: str, event_type: str, seq: int, run_id: str, deposit_total: int, deposit_delta: int = 1, starting_total: int = 0) -> dict:
     """Create a single event record dictionary."""
@@ -75,67 +82,74 @@ def validate_args(args):
     if args.event_type not in {"deposit", "heartbeat"}:
         print("Error: --event-type must be 'deposit' or 'heartbeat'", file=sys.stderr)
         raise SystemExit(2)
+    
+def create_event(event_time: str, ingest_time: str, device_id: str, event_type: str, seq: int, run_id: str, deposit_total: int, deposit_delta: int = 1, starting_total: int = 0) -> dict:
+    '''Create a single event record dictionary based on the provided parameters.'''
+    record = {
+        "event_time": event_time,
+        "ingest_time": ingest_time,
+        "device_id": device_id,
+        "event_type": event_type,
+        "seq": seq,
+        "run_id": run_id,
+    }
+
+    if event_type == "deposit":
+        record["deposit_delta"] = deposit_delta
+        record["deposit_total"] = deposit_total
+        record["starting_total"] = starting_total
+
+    elif event_type == "heartbeat":
+        record["status"] = "online"
+
+    return record
 
 def main():
     # parse and validate command-line arguments
     args = parse_args()
     validate_args(args)
-
+    out_path = Path(args.out) # convert the output file path string to a Path object for easier file handling
     run_id = create_run_id()
     deposit_total = args.starting_total
     written = 0 # counter for number of records successfully written to the output file 
 
     try:
-        # args.out is the output file path specified by the user, open it in append mode ("a") to add new events without overwriting existing content
-        with open(args.out, "a", encoding="utf-8") as f:
+        # taking count into consideration
+        for seq in range(1, args.count + 1): 
+            # timestamps are generated 
+            event_time = utc_now_iso()
+            ingest_time = utc_now_iso()
 
-            for seq in range(1, args.count + 1):
+            record = create_event(
+                event_time=event_time,
+                ingest_time=ingest_time,
+                device_id=args.device_id,
+                event_type=args.event_type,
+                seq=seq,
+                run_id=run_id,
+                deposit_total=deposit_total,
+                starting_total=args.starting_total
+            )
 
-                if args.event_type == "deposit":
-                    deposit_total += 1
-                    event_time = utc_now_iso() # update event_time for each deposit event to reflect the time of the event generation
-                    ingest_time = utc_now_iso() # ingest_time is the time when the event is generated and ingested into the system, it can be the same as event_time or slightly later depending on processing time
-                    record = create_event(
-                        device_id=args.device_id,
-                        event_type="deposit",
-                        ingest_time=ingest_time,
-                        seq=seq,
-                        run_id=run_id,          
-                        deposit_total=deposit_total,
-                        event_time=event_time,
-                        count = args.count,
-                    )
-                else:
-                    record = create_event(
-                        device_id=args.device_id,
-                        event_type="heartbeat",
-                        ingest_time=ingest_time,
-                        seq=seq,
-                        run_id=run_id,
-                        count = args.count,    
-                        event_time=event_time,       
-                    )
+            append_jsonl_line(out_path, record)
+            written += 1
 
-                f.write(json.dumps(record) + "\n")
-                f.flush()
+            # if verbose flag exists, then it's set and it prints message every 5 records
+            if args.verbose and (seq % 5 == 0):
+                print(f"generated seq={seq} type={args.event_type} out={out_path}")
 
-                written += 1
+            if args.interval > 0 and seq < args.count:
+                time.sleep(args.interval)
 
-                if args.verbose and seq % 5 == 0:
-                    print(
-                        f"generated seq={seq} "
-                        f"type={args.event_type} "
-                        f"out={args.out} "
-                    )
-
-                if args.interval > 0:
-                    time.sleep(args.interval)
+        print(f"Done. Wrote {written} record(s).")
 
     except KeyboardInterrupt:
-        print(f"\nInterrupted. Wrote {written} record(s).")
+        # handling Ctrl-C
+        print(f"\nInterrupted. Wrote {written} record(s).", file=sys.stderr)
+        raise SystemExit(0)
 
     except OSError as e:
-        print(f"Runtime error: {e}", file=sys.stderr)
+        print(f"Runtime error (I/O): {e}", file=sys.stderr)
         raise SystemExit(1)
 
 
