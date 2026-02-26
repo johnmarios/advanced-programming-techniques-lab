@@ -212,7 +212,7 @@ python event_generator.py \
 
 ## F.1 / F.2
 
-### RQ31
+## RQ31
 Real systems begin with noisy, low-level sensor signals.We started by creating this mock event generator so we can focus on:
 - CLI design  
 - Validation and error handling  
@@ -221,7 +221,7 @@ Real systems begin with noisy, low-level sensor signals.We started by creating t
 - Timestamping  
 - Clean shutdown behavior  
 
-### RQ32
+## RQ32
 - Strict CLI validation (`--count > 0`, `--interval >= 0`, valid `--event-type`)
 - Correct JSON Lines formatting (one valid JSON object per line)
 - Append-only file behavior (`"a"` mode)
@@ -231,52 +231,52 @@ Real systems begin with noisy, low-level sensor signals.We started by creating t
 - Monotonic `deposit_total` logic
 - Clean multi-run appends to the same file
 
-### RQ33
+## RQ33
 - `deposit` answers: “Did the wastebin just get used?”
 - `heartbeat` answers: “Is the wastebin online and functioning?”
 Separating activity from liveness improves system observability and allows monitoring systems to distinguish between inactivity and failure.
 
-### RQ34
+## RQ34
 If `heartbeat` events are missing, a monitoring system could incorrectly assume the device is offline, even if it is simply idle and functioning correctly.
 
 ## F.3
 
-### RQ35
+## RQ35
 - `--starting-total` (default 0): Allows simulation of a device with pre-existing deposit state, ensuring `deposit_total` behaves as a cumulative counter.
 - `--verbose`: Enables periodic operational output (every 5 records) without contaminating the JSONL event log.
 
-### RQ36
+## RQ36
 Failing early prevents:
 - Corrupt or logically invalid event logs  
 - Undefined runtime behavior   
 
 ## F.4 / F.5 
 
-### RQ37: Why is JSON Lines a good fit for append-only logs?
+## RQ37
 JSON Lines is a good fit because:
 - Each record can be parsed independently.
 - New records can be appended safely without rewriting the file.
 - Large logs can be streamed line-by-line.
 
-### RQ38
+## RQ38
 `seq` guarantees deterministic ordering within a run.  
 Timestamps provide real-world timing context.  
 Together, they enable correctness validation and traceability.
 
-### RQ39: Why must `deposit_total` be monotonically increasing?
+## RQ39
 This makes sure the counter reflects consistent state progression and prevents logical corruption.
 
-### RQ40: Which correctness rule is hardest to verify manually?
+## RQ40
 Verifying that `deposit_total` increases exactly by 1 per record is hardest manually, especially in long append-onlylogs because it requires checking both monotonicity and step size consistency.
 
 ## F.6
 
-### RQ41
+## RQ41
 - Break JSON parsing  
 - Corrupt structured logs  
 - Violate the “one JSON object per line” requirement  
 
-### RQ42
+## RQ42
 - Confirm progress  
 - Debug runtime issues  
 - Diagnose file I/O failures  
@@ -284,22 +284,23 @@ Verifying that `deposit_total` increases exactly by 1 per record is hardest manu
 
 ## F.7 / F.8 
 
-### RQ43
+## RQ43
 This distinction allows our system to differentiate between incorrect user input and system-level failures.
 
-### RQ44
+## RQ44
 Automated systems can:
 - Detect failure types programmatically  
 - Retry on runtime errors  
 - Fail fast on usage errors  
 - Trigger alerts conditionally  
 
-### RQ45: What could go wrong without proper interrupt handling?
+## RQ45
 Without handling:
 - The file may contain incomplete writes  
 - Buffered data may not flush  
 - The user may not know how many records were successfully written  
 - Debugging becomes more difficult  
+
 
 
 
