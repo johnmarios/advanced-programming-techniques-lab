@@ -121,6 +121,7 @@ def main():
                 time.sleep(args.interval)
 
         print(f"Done. Wrote {written} record(s).")
+        append_jsonl_newline(out_path) # for better formatting 
 
     except KeyboardInterrupt:
         # handling Ctrl-C
