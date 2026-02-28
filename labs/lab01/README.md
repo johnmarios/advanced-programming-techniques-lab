@@ -303,14 +303,6 @@ In the Ctrl-C test (`--count 100`, `--interval 0.2`), 33 records were written be
 
 ## H.3
 
-## RQ51
-Five blocking issues were: missing prerequisites, incomplete commands, unclear run location (laptop vs Pi), unclear venv activation, and missing expected outputs.
-
-## RQ52
-We improved our README by making commands clearer, adding invalid-input examples with exit codes, adding test evidence, and separating operational notes from JSONL data behavior.
-
-## RQ0
-Final end-of-lab commit hash (current): `c7816ae`
 
 
 
