@@ -194,29 +194,6 @@ If we had used `click`, we would need to include it in `requirements.txt` becaus
   Displays detailed information about a specific package.  
   Check the **Location** field to confirm it points to the venv directory and not the system Python.
 
-## CLI INPUT
-
-Generate 5 deposit events:
-```bash
-python event_generator.py \
-  --device-id wastebin-01 \
-  --event-type deposit \
-  --count 5 \
-  --interval 0.2 \
-  --out events.log
-```
-
-Generate 3 heartbeat events:
-```bash
-python event_generator.py \
-  --device-id wastebin-01 \
-  --event-type heartbeat \
-  --count 3 \
-  --interval 0.5 \
-  --out events.log
-```
-
-
 
 ## F.1 / F.2
 
