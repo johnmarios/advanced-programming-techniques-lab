@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument("--interval", type=float, required=True)
     parser.add_argument("--out", required=True)
 
-    parser.add_argument("--starting-total", type=int, default=0)
+    parser.add_argument("--starting-total", type=int, default=None)
     parser.add_argument("--deposit-delta", type=int, default=1)
     parser.add_argument("--verbose", action="store_true") # if verbose appears in command-line, will be set to True, otherwise it will be False
     # store_true means that if the flag is present, it will set the value to True, and if it's absent, it will set the value to False
@@ -168,20 +168,20 @@ def create_event(event_time: str, ingest_time: str, device_id: str, event_type: 
     if event_type == "deposit" and maintenance:
         record["deposit_delta"] = 0
         record["deposit_total"] = deposit_total
-        record["starting_total"] = starting_total
+        if starting_total is not None: record["starting_total"] = starting_total 
         record["status"] = "rejected"
         record["reason"] = "maintenance_mode"
 
     elif event_type == "deposit" and lid_open:
         record["deposit_delta"] = deposit_delta
         record["deposit_total"] = deposit_total
-        record["starting_total"] = starting_total
+        if starting_total is not None: record["starting_total"] = starting_total 
         record["status"] = "accepted"
     
     elif event_type == "deposit" and not lid_open:
         record["deposit_delta"] = 0 
         record["deposit_total"] = deposit_total
-        record["starting_total"] = starting_total
+        if starting_total is not None: record["starting_total"] = starting_total 
         record["status"] = "rejected"
         record["reason"] = "lid_closed"
 
@@ -195,6 +195,16 @@ def create_event(event_time: str, ingest_time: str, device_id: str, event_type: 
 
     return record
 
+def configure_deposit_total(starting_total: int | None, out_path: Path) -> int:
+    last_deposit_total = get_deposit_total(out_path) # gets the latest deposit total from the log
+    # if starting total is provided in CLI (even 0), always use it
+    if starting_total is not None:
+        return starting_total
+    # if starting total is omitted, continue from previous total when available
+    if last_deposit_total is not None:
+        return last_deposit_total
+    return 0
+
 def main():
     # parse and validate command-line arguments
     args = parse_args()
@@ -206,9 +216,9 @@ def main():
     load_previous_state(out_path)
     apply_state_transition(args.event_type) 
     
-    # deposit_total is either the last deposit total from the previous state (if exists) or the starting total provided in the command-line arguments 
-    last_deposit_total = get_deposit_total(out_path)
-    deposit_total = last_deposit_total if last_deposit_total is not None else args.starting_total
+    # deposit_total is either the last deposit total from the previous state (if exists) and starting-total isn't provided,
+    # or the starting total provided in the command-line arguments 
+    deposit_total = configure_deposit_total(args.starting_total, out_path)
     
     run_id = create_run_id()
     written = 0 # counter for number of records successfully written to the output file 
