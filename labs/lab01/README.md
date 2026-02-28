@@ -11,7 +11,8 @@ Xristina Tzouda 1097346
 
 ---
 
-# A. Network & SSH Setup
+
+# A.
 
 ## RQ1
 Hostname: `iotlab_upat_6`  
@@ -301,8 +302,18 @@ Without handling:
 - The user may not know how many records were successfully written  
 - Debugging becomes more difficult  
 
+## RQ51 
+- No statement about required internet access or needing hotspot access.
+- No mention of SSH needing to be enabled.
+- No mention or help if an error occurs.
+- No Python version requirement.
+- Instructions like “install dependencies” without exact commands.
+- No clear use of `python3`.
+- Commands are not fully copy-pasteable.
+- Does not specify whether commands should run on the laptop or the Raspberry Pi.
+- No instruction to activate the venv before installing or running.
 
-
+## RQ52
 
 
 
