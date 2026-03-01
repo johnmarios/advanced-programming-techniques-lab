@@ -138,7 +138,12 @@ Hostname: `iotlab_upat_6`
 IP: `192.168.137.222`
 
 ## RQ2
-Connection attempt failed.
+The first SSH connection attempt failed with:
+
+`ssh: connect to host 192.168.137.222 port 22: Connection refused`
+
+This happened because the SSH service was not enabled yet on the Raspberry Pi.  
+After enabling SSH through `raspi-config`, the connection succeeded.
 
 ## RQ3
 Connection type: Wireless.
@@ -253,7 +258,7 @@ git pull origin main
 When complete, we merge into `main`.
 
 ## RQ21
-Answered in RQ18.
+A merge conflict happens when two teammates change the same lines (or overlapping nearby lines) and Git cannot auto-merge. It usually appears if someone works without pulling recent remote changes first.
 
 ## RQ22
 We used SSH key authentication.  
@@ -286,8 +291,11 @@ A virtual environment creates an isolated Python environment with its own interp
 This allows each project to manage dependencies independently and ensures reproducibility.
 
 ## RQ28
-We used `click`.  
-If we had used `argparse`, it would not need to be included in `requirements.txt` because it is part of Python’s standard library, while `click` must be included since it is a third-party package.
+We used `argparse` for CLI parsing.
+
+`argparse` is part of Python’s standard library, so it does NOT need to be included in `requirements.txt`.
+
+If we had used `click`, we would need to include it in `requirements.txt` because it is a third-party dependency.
 
 ## RQ29
 - Using different dependency versions in `requirements.txt` can cause **inconsistent behavior** across environments.
@@ -306,55 +314,17 @@ If we had used `argparse`, it would not need to be included in `requirements.txt
   Displays detailed information about a specific package.  
   Check the **Location** field to confirm it points to the venv directory and not the system Python.
 
-## CLI INPUT
-
-Generate 5 deposit events:
-```bash
-python event_generator.py \
-  --device-id wastebin-01 \
-  --event-type deposit \
-  --count 5 \
-  --interval 0.2 \
-  --out events.log
-```
-
-Generate 3 heartbeat events:
-```bash
-python event_generator.py \
-  --device-id wastebin-01 \
-  --event-type heartbeat \
-  --count 3 \
-  --interval 0.5 \
-  --out events.log
-```
-
-
 
 ## F.1 / F.2
 
 ## RQ31
-Real systems begin with noisy, low-level sensor signals.We started by creating this mock event generator so we can focus on:
-- CLI design  
-- Validation and error handling  
-- Append-only logging  
-- Record sequencing  
-- Timestamping  
-- Clean shutdown behavior  
+A mock event generator lets us test the software workflow first (CLI, validation, logging, and reliability) before adding real hardware complexity.
 
 ## RQ32
-- Strict CLI validation (`--count > 0`, `--interval >= 0`, valid `--event-type`)
-- Correct JSON Lines formatting (one valid JSON object per line)
-- Append-only file behavior (`"a"` mode)
-- Required field presence (`event_time`, `ingest_time`, `device_id`, `seq`, `run_id`)
-- ISO-8601 UTC timestamp formatting (`...Z`)
-- Sequence correctness (`seq` increments by exactly 1)
-- Monotonic `deposit_total` logic
-- Clean multi-run appends to the same file
+With this mock we can test CLI validation, JSONL formatting, append-only logging, required fields, sequencing, timestamps, and counter behavior without using sensors.
 
 ## RQ33
-- `deposit` answers: “Did the wastebin just get used?”
-- `heartbeat` answers: “Is the wastebin online and functioning?”
-Separating activity from liveness improves system observability and allows monitoring systems to distinguish between inactivity and failure.
+`deposit` shows usage, while `heartbeat` shows liveness; separating them helps monitoring distinguish “idle” from “offline.”
 
 ## RQ34
 If `heartbeat` events are missing, a monitoring system could incorrectly assume the device is offline, even if it is simply idle and functioning correctly.
@@ -362,45 +332,32 @@ If `heartbeat` events are missing, a monitoring system could incorrectly assume 
 ## F.3
 
 ## RQ35
-- `--starting-total` (default 0): Allows simulation of a device with pre-existing deposit state, ensuring `deposit_total` behaves as a cumulative counter.
-- `--verbose`: Enables periodic operational output (every 5 records) without contaminating the JSONL event log.
+We added `--starting-total`, `--deposit-delta`, and `--verbose`: `--starting-total` sets the initial counter, `--deposit-delta` controls the increment step for accepted deposits, and `--verbose` prints progress every 5 records.
 
 ## RQ36
-Failing early prevents:
-- Corrupt or logically invalid event logs  
-- Undefined runtime behavior   
+Failing early avoids bad logs and makes errors clear before execution continues.
 
 ## F.4 / F.5 
 
 ## RQ37
-JSON Lines is a good fit because:
-- Each record can be parsed independently.
-- New records can be appended safely without rewriting the file.
-- Large logs can be streamed line-by-line.
+JSON Lines is ideal because each event is independent, appending is safe, and large files can be read line by line.
 
 ## RQ38
-`seq` guarantees deterministic ordering within a run.  
-Timestamps provide real-world timing context.  
-Together, they enable correctness validation and traceability.
+`seq` gives exact order and timestamps give time context, so together they improve traceability and debugging.
 
 ## RQ39
-This makes sure the counter reflects consistent state progression and prevents logical corruption.
+It keeps state consistent and prevents incorrect totals over time.
 
 ## RQ40
-Verifying that `deposit_total` increases exactly by 1 per record is hardest manually, especially in long append-onlylogs because it requires checking both monotonicity and step size consistency.
+Checking that `deposit_total` changes correctly in long logs is hardest manually, because you must verify every step.
 
 ## F.6
 
 ## RQ41
-- Break JSON parsing  
-- Corrupt structured logs  
-- Violate the “one JSON object per line” requirement  
+If operational text is mixed into event logs, parsers fail and the JSONL format breaks.
 
 ## RQ42
-- Confirm progress  
-- Debug runtime issues  
-- Diagnose file I/O failures  
-- Observe interrupt behavior  
+Operational logs are useful to track progress and diagnose runtime problems quickly.
 
 ## F.7 / F.8 
 
@@ -408,31 +365,66 @@ Verifying that `deposit_total` increases exactly by 1 per record is hardest manu
 This distinction allows our system to differentiate between incorrect user input and system-level failures.
 
 ## RQ44
-Automated systems can:
-- Detect failure types programmatically  
-- Retry on runtime errors  
-- Fail fast on usage errors  
-- Trigger alerts conditionally  
+Consistent exit codes let automation detect error type, retry when appropriate, and trigger the right alerts.
 
 ## RQ45
-Without handling:
-- The file may contain incomplete writes  
-- Buffered data may not flush  
-- The user may not know how many records were successfully written  
-- Debugging becomes more difficult  
+Without interrupt handling, writes may be incomplete, buffers may not flush, and troubleshooting becomes harder.
 
-## RQ51 
-- No statement about required internet access or needing hotspot access.
-- No mention of SSH needing to be enabled.
-- No mention or help if an error occurs.
-- No Python version requirement.
-- Instructions like “install dependencies” without exact commands.
-- No clear use of `python3`.
-- Commands are not fully copy-pasteable.
-- Does not specify whether commands should run on the laptop or the Raspberry Pi.
-- No instruction to activate the venv before installing or running.
+## G.1
 
-## RQ52
+## RQ46
+Test command used:
+```bash
+python event_generator.py --device-id wastebin-01 --event-type deposit --count 5 --interval 0 --out test_events.log
+```
+
+First record:
+```json
+{"event_time": "2026-02-28T21:35:11.458Z", "ingest_time": "2026-02-28T21:35:11.459Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 1, "run_id": "4fd96845-d1a2-4451-a0c4-29e6db8473e8", "deposit_delta": 1, "deposit_total": 1, "status": "accepted"}
+```
+
+Last record:
+```json
+{"event_time": "2026-02-28T21:35:12.259Z", "ingest_time": "2026-02-28T21:35:12.259Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 5, "run_id": "4fd96845-d1a2-4451-a0c4-29e6db8473e8", "deposit_delta": 1, "deposit_total": 5, "status": "accepted"}
+```
+
+`seq` increased from 1 to 5, such as `deposit_total`  because deposits were accepted because of the previous event: `lid_open`. We also don't have `maintenance` event active. 
+
+## RQ47
+A consumer can check `event_type`, `status == "online"` is for heartbeats, and deposit fields for deposits.
+
+## RQ48
+Invalid command 1:
+```bash
+python event_generator.py --device-id wastebin-01 --event-type invalid_type --count 5 --interval 0 --out events.log
+```
+Error:
+```text
+Error: --event-type must be 'deposit', 'heartbeat', 'lid_open', 'lid_close', 'lid_clear', 'maintenance', or 'maintenance_termination'
+```
+Exit code: `2`
+
+Invalid command 2:
+```bash
+python event_generator.py --device-id wastebin-01 --event-type heartbeat --count 0 --interval 0 --out events.log
+```
+Error:
+```text
+Error: --count must be > 0
+```
+Exit code: `2`
+
+## RQ49
+`--count 0` is probably most common, because users often run quick tests and accidentally set zero.
+
+## RQ50
+In the Ctrl-C test (`--count 100`, `--interval 0.2`), 33 records were written before interruption.
+**Interrupted. Wrote 33 record(s).**
+
+## H.3
+
+
+
 
 
 

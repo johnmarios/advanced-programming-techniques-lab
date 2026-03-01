@@ -1,1 +1,2 @@
-click==8.1.7
+# This lab uses only Python standard library modules.
+# No external packages are required.

@@ -6,6 +6,21 @@ import argparse
 import time
 from pathlib import Path
     
+lid_open = False
+maintenance = False
+
+def apply_state_transition(event_type: str) -> None:
+    '''Update the global state variables based on the event type.'''
+    global lid_open, maintenance
+    
+    if event_type == "lid_open":
+        lid_open = True
+    elif event_type == "lid_close":
+        lid_open = False
+    elif event_type == "maintenance":
+        maintenance = True
+    elif event_type == "maintenance_termination":
+        maintenance = False
 
 def utc_now_iso() -> str:
     '''creates a UTC timestamp in ISO 8601 format with milliseconds precision'''
@@ -42,8 +57,10 @@ def parse_args():
     parser.add_argument("--interval", type=float, required=True)
     parser.add_argument("--out", required=True)
 
-    parser.add_argument("--starting-total", type=int, default=0)
+    parser.add_argument("--starting-total", type=int, default=None)
+    parser.add_argument("--deposit-delta", type=int, default=1)
     parser.add_argument("--verbose", action="store_true") # if verbose appears in command-line, will be set to True, otherwise it will be False
+    # store_true means that if the flag is present, it will set the value to True, and if it's absent, it will set the value to False
     return parser.parse_args() # parse the command-line arguments and return them as a Namespace object
 
 def validate_args(args):
@@ -58,10 +75,85 @@ def validate_args(args):
         print("Error: --interval must be >= 0", file=sys.stderr)
         raise SystemExit(2)
 
-    if args.event_type not in {"deposit", "heartbeat"}:
-        print("Error: --event-type must be 'deposit' or 'heartbeat'", file=sys.stderr)
+    if args.deposit_delta <= 0:
+        print("Error: --deposit-delta must be > 0", file=sys.stderr)
         raise SystemExit(2)
-    
+
+    if args.event_type not in {"deposit", "heartbeat", "lid_open", "lid_close", "lid_clear", "maintenance", "maintenance_termination"}:
+        print("Error: --event-type must be 'deposit', 'heartbeat', 'lid_open', 'lid_close', 'lid_clear', 'maintenance', or 'maintenance_termination'", file=sys.stderr)
+        raise SystemExit(2)
+
+def load_previous_state(path: Path) -> None:
+    '''Restore state by scanning from the bottom and applying the latest state transition.'''
+    # updates the global state variables
+
+    global lid_open, maintenance
+
+    if not path.exists():
+        return
+
+    with path.open("r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    lid_state_found = False
+    maintenance_state_found = False
+
+    for line in reversed(lines):
+        if line.strip() == "":
+            continue
+        record = json.loads(line)
+        event_type = record.get("event_type")
+
+        if not lid_state_found and event_type == "lid_open":
+            lid_open = True
+            lid_state_found = True
+        elif not lid_state_found and event_type == "lid_close":
+            lid_open = False
+            lid_state_found = True
+
+        if not maintenance_state_found and event_type == "maintenance":
+            maintenance = True
+            maintenance_state_found = True
+        elif not maintenance_state_found and event_type == "maintenance_termination":
+            maintenance = False
+            maintenance_state_found = True
+
+        if lid_state_found and maintenance_state_found:
+            break
+
+
+def get_last_record(path: Path) -> dict | None:
+    '''get the last record from the JSONL file, return None if file does not exist or is empty'''
+    if not path.exists():
+        return None
+
+    last_record = None
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip() == "": # skip empty lines
+                continue
+            last_record = json.loads(line) # parse the JSON string into a Python dictionary
+
+    return last_record
+
+def get_deposit_total(path: Path) -> int | None:
+    '''Return the latest deposit_total found in the log, otherwise None.'''
+    if not path.exists():
+        return None
+
+    with path.open("r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    for line in reversed(lines):
+        if line.strip() == "":
+            continue
+        record = json.loads(line)
+        value = record.get("deposit_total")
+        if isinstance(value, int):
+            return value
+
+    return None
+
 def create_event(event_time: str, ingest_time: str, device_id: str, event_type: str, seq: int, run_id: str, deposit_total: int, deposit_delta: int = 1, starting_total: int = 0) -> dict:
     '''Create a single event record dictionary based on the provided parameters.'''
     record = {
@@ -73,23 +165,62 @@ def create_event(event_time: str, ingest_time: str, device_id: str, event_type: 
         "run_id": run_id,
     }
 
-    if event_type == "deposit":
+    if event_type == "deposit" and maintenance:
+        record["deposit_delta"] = 0
+        record["deposit_total"] = deposit_total
+        if starting_total is not None: record["starting_total"] = starting_total 
+        record["status"] = "rejected"
+        record["reason"] = "maintenance_mode"
+
+    elif event_type == "deposit" and lid_open:
         record["deposit_delta"] = deposit_delta
         record["deposit_total"] = deposit_total
-        record["starting_total"] = starting_total
+        if starting_total is not None: record["starting_total"] = starting_total 
+        record["status"] = "accepted"
+    
+    elif event_type == "deposit" and not lid_open:
+        record["deposit_delta"] = 0 
+        record["deposit_total"] = deposit_total
+        if starting_total is not None: record["starting_total"] = starting_total 
+        record["status"] = "rejected"
+        record["reason"] = "lid_closed"
 
     elif event_type == "heartbeat":
         record["status"] = "online"
 
+    elif event_type == "lid_clear":
+        record["action"] = "cleared"
+        record["deposit_total"] = deposit_total
+
+
     return record
+
+def configure_deposit_total(starting_total: int | None, out_path: Path) -> int:
+    last_deposit_total = get_deposit_total(out_path) # gets the latest deposit total from the log
+    # if starting total is provided in CLI (even 0), always use it
+    if starting_total is not None:
+        return starting_total
+    # if starting total is omitted, continue from previous total when available
+    if last_deposit_total is not None:
+        return last_deposit_total
+    return 0
 
 def main():
     # parse and validate command-line arguments
     args = parse_args()
     validate_args(args)
+
     out_path = Path(args.out) # convert the output file path string to a Path object for easier file handling
+    
+    # the global state variables are updated based on previous state and current event 
+    load_previous_state(out_path)
+    apply_state_transition(args.event_type) 
+    
+    # deposit_total is either the last deposit total from the previous state (if exists) and starting-total isn't provided,
+    # or the starting total provided in the command-line arguments 
+    deposit_total = configure_deposit_total(args.starting_total, out_path)
+    
     run_id = create_run_id()
-    deposit_total = args.starting_total
     written = 0 # counter for number of records successfully written to the output file 
 
     try:
@@ -98,7 +229,12 @@ def main():
             # timestamps are generated 
             event_time = utc_now_iso()
             ingest_time = utc_now_iso()
-            deposit_total += 1 if args.event_type == "deposit" else 0               
+
+            if args.event_type == "deposit" and lid_open and not maintenance:
+                deposit_total += args.deposit_delta
+            elif args.event_type == "lid_clear":
+                deposit_total = 0
+
             record = create_event(
                 event_time=event_time,
                 ingest_time=ingest_time,
@@ -107,10 +243,12 @@ def main():
                 seq=seq,
                 run_id=run_id,
                 deposit_total=deposit_total,
+                deposit_delta=args.deposit_delta,
                 starting_total=args.starting_total
             )
 
             append_jsonl_line(out_path, record)
+        
             written += 1
 
             # if verbose flag exists, then it's set and it prints message every 5 records
