@@ -18,6 +18,7 @@ Xristina Tzouda 1097346
 - GitHub account
 - Python 3.9+ on the Raspberry Pi
 - Internet access
+- Open the hotspot from a laptop and connect on th raspberry pi
 
 ## 1. Boot, network, and identity
 On the Raspberry Pi :
@@ -28,9 +29,9 @@ ping -c 3 8.8.8.8
 ping -c 3 google.com .
 ```
 Results :
-Hostname: `iotlab_upat_6`  
-IP: `192.168.137.222`
-Connection attempt failed.
+-Hostname: `iotlab_upat_6`  
+-IP: `192.168.137.222`.
+-Connection attempt failed.
 
 ## 2. Enable SSH on the Raspberry Pi
 ```bash
@@ -55,6 +56,22 @@ On the laptop :
 ```bash
 ssh iotlab_upat_6@192.168.137.222
 ```
+It required a password, which we gave the first time we connected by ssh.
+## SSH key authentication.
+Run the following:
+```bash
+ssh-keygen -t rsa
+```
+This created the key pair in:
+```
+/home/iotlab_upat_6/.ssh/id_rsa
+```
+Then we copied the public key:
+```bash
+ssh-copy-id -i ~/.ssh/id_rsa.pub iotlab_upat_6@192.168.137.222
+```
+This allows login without entering a password.
+
 ## 5. Verification 
 On the laptop run :
 ```bash
@@ -62,8 +79,7 @@ whoami
 uptime
 ```
 Results:
-whoami: `iotlab_upat_6`
-uptime:
+-whoami: `iotlab_upat_6`.
 
 # Part-C. Baseline smoke test
 ## 6. Frequent root causes of failures and inconsistent results
@@ -105,6 +121,7 @@ Push the branch:
 ```
 git push -u origin lab01/<shortname>
 ```
+
 # Part-E — Reproducible Python environment on the Pi
 ## 9.
 Clone the team repository on the pi using :
@@ -112,17 +129,95 @@ Clone the team repository on the pi using :
 cd
 ```
 Until it reaches labs/labs01 (our team's folder)
+
 ## 10. Create the venv 
 From the labs/lab01 directory on the Raspberry Pi, run:
 ```bash
 python3 -m venv venv
 ```
 This way we created a folder named venv/ that contains the isolated environment.
+
 ## 11. Enable the venv
 On the laptop we run :
 ```bush
 source venv/bin/activate
 ```
+After activation the terminal prompt showed (venv).
+
+## 12. Validation 
+Run the following :
+```bush
+which python
+python --version
+python -c "import sys; print(sys.executable)"
+```
+Results:
+1.Python version: 3.13.5
+2.The following python path :
+/home/iotlab_upat_6/advanced-programming-techniques-lab/labs/lab01/venv/bin/python
+
+## 13.Dependencies-Creation of requirments.txt
+We used argparse which is part of Python’s standard library, so it does NOT need to be included in `requirements.txt`.
+Then run the following in order to install dependencies into the venv :
+```bush
+pip install -r requirements.txt
+```
+Verify by running:
+```bush
+pip list
+```
+That shows all installed packages in the currently active environment, the venv in this case.
+
+# Part-F — Build a mock event generator
+## 14.What to build 
+ A command-line tool named `event_generator.py` that simulates a wastebin device by writing JSON Lines (JSONL) event records to an output file.
+ Saved at :
+ File: labs/lab01/event_generator.py
+
+ ## 15.Event types
+-Must support at least the following event types:. 
+1.deposit: Something was thrown into the bin.
+2.heartbeat: Shows that the software is running and is able to emit events.
+-Optional event types that were used:.
+1.`--starting-total` : 
+2.`--deposit-delta` 
+3.`--verbose`
+
+## 16.CLI requirments
+We used `argparse`, more details on step 13.
+
+## 17. Output format - JSON Lines
+The output file is an append-only event log.
+Fields required in every record:.
+-event_time (ISO-8601 UTC, e.g. 2026-02-10T12:34:56.789Z)
+-ingest_time (ISO-8601 UTC)
+-device_id (string)
+-event_type (string)
+-seq (integer; starts at 1 and increments by 1)
+-run_id (string; unique per execution)
+
+## 18. Strict error handling and exit codes
+Required behavior:
+1.Exit with code 2 for CLI/usage errors.
+2.Exit with code 1 for runtime errors (for example, file I/O failures).
+3.Print errors to stderr.
+3.Reject invalid arguments:
+    -count <= 0.
+    -interval < 0.
+    -unknown event_type.
+4.If the program is interrupted (Ctrl-C), it must shut down gracefully.
+
+## 19. The code 
+Using the hints given we wrote the code that is saved as `event_generator.py`.
+
+
+
+
+
+
+
+
+
 
 
 
@@ -422,6 +517,7 @@ In the Ctrl-C test (`--count 100`, `--interval 0.2`), 33 records were written be
 **Interrupted. Wrote 33 record(s).**
 
 ## H.3
+
 
 
 
