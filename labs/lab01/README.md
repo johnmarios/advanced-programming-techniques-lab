@@ -10,8 +10,128 @@ Filippos Theologos 1092633
 Xristina Tzouda 1097346
 
 ---
+# SECTION A - RUNBOOK
+# Part-A. One-time Raspberry Pi bootstrap
+## 0. Necessary hardware and apps 
+- Raspberry Pi 5
+- Laptop with SSH and Git installed
+- GitHub account
+- Python 3.9+ on the Raspberry Pi
+- Internet access
 
-# A. Network & SSH Setup
+## 1. Boot, network, and identity
+On the Raspberry Pi :
+```bash
+hostname
+ip a
+ping -c 3 8.8.8.8
+ping -c 3 google.com .
+```
+Results :
+Hostname: `iotlab_upat_6`  
+IP: `192.168.137.222`
+Connection attempt failed.
+
+## 2. Enable SSH on the Raspberry Pi
+```bash
+sudo raspi-config
+```
+Then:
+-Select Interface Options
+-Select SSH
+-Choose Enable
+-Exit the tool
+
+## 3.Verify ssh works 
+On the Raspberry Pi:
+```bash
+systemctl status ssh
+```
+Result: **active (running)**
+
+# Part-B. Remote-first workflow (SSH from laptop)
+## 4. SSH from a team's member laptop
+On the laptop :
+```bash
+ssh iotlab_upat_6@192.168.137.222
+```
+## 5. Verification 
+On the laptop run :
+```bash
+whoami
+uptime
+```
+Results:
+whoami: `iotlab_upat_6`
+uptime:
+
+# Part-C. Baseline smoke test
+## 6. Frequent root causes of failures and inconsistent results
+On the laptop run :
+```bush
+uname -a
+cat /etc/os-release
+df -h
+free -h
+date
+python3 --version
+pip3 --version
+```
+Important Results : 
+1. Correct system time and date
+2. Python version downloaded on the laptop
+3. Disc usage
+
+# Part-D — Git and GitHub basics
+## 7. Clone, add, commit, push 
+Clone the repository:
+```
+git clone <repo-url>
+cd <repo-folder>
+```
+In order to make the requested repository we used the code:
+```
+git status
+git add README.md labs/
+git commit -m "Lab01: initialize repository structure"
+git push
+```
+## 8. Branching and conflict awareness
+Create a branch:
+```
+git checkout -b lab01/<shortname>
+```
+Push the branch:
+```
+git push -u origin lab01/<shortname>
+```
+# Part-E — Reproducible Python environment on the Pi
+## 9.
+Clone the team repository on the pi using :
+```bash
+cd
+```
+Until it reaches labs/labs01 (our team's folder)
+## 10. Create the venv 
+From the labs/lab01 directory on the Raspberry Pi, run:
+```bash
+python3 -m venv venv
+```
+This way we created a folder named venv/ that contains the isolated environment.
+## 11. Enable the venv
+On the laptop we run :
+```bush
+source venv/bin/activate
+```
+
+
+
+
+
+
+
+# SECTION B - REPORT
+# A.
 
 ## RQ1
 Hostname: `iotlab_upat_6`  
