@@ -29,9 +29,9 @@ ping -c 3 8.8.8.8
 ping -c 3 google.com .
 ```
 Results :
--Hostname: `iotlab_upat_6`  
--IP: `192.168.137.222`.
--Connection attempt failed.
+ -Hostname: `iotlab_upat_6`  
+ -IP: `192.168.137.222`.
+ -Connection attempt failed.
 
 ## 2. Enable SSH on the Raspberry Pi
 ```bash
@@ -124,11 +124,7 @@ git push -u origin lab01/<shortname>
 
 # Part-E — Reproducible Python environment on the Pi
 ## 9.
-Clone the team repository on the pi using :
-```bash
-cd
-```
-Until it reaches labs/labs01 (our team's folder)
+A Python virtual environment (`venv`) is an isolated environment that contains its own Python interpreter and installed packages. It ensures that the dependencies required for this project do not interfere with system-wide Python packages or other projects. Before installing dependencies or running the program, the virtual environment must be activated. This guarantees consistent package versions and improves reproducibility across different systems.
 
 ## 10. Create the venv 
 From the labs/lab01 directory on the Raspberry Pi, run:
@@ -175,13 +171,19 @@ That shows all installed packages in the currently active environment, the venv 
  File: labs/lab01/event_generator.py
 
  ## 15.Event types
--Must support at least the following event types:. 
+ -Must support at least the following event types:. 
 1.deposit: Something was thrown into the bin.
 2.heartbeat: Shows that the software is running and is able to emit events.
--Optional event types that were used:.
+ -Optional event types that were used:.
 1.`--starting-total` : 
 2.`--deposit-delta` 
 3.`--verbose`
+ -Added events :
+1.`--lid_open`
+2.`--lid_close`
+3.`--maintance`
+4.`--maintance_termination`
+5.`--lid_clear`
 
 ## 16.CLI requirments
 We used `argparse`, more details on step 13.
@@ -189,12 +191,12 @@ We used `argparse`, more details on step 13.
 ## 17. Output format - JSON Lines
 The output file is an append-only event log.
 Fields required in every record:.
--event_time (ISO-8601 UTC, e.g. 2026-02-10T12:34:56.789Z)
--ingest_time (ISO-8601 UTC)
--device_id (string)
--event_type (string)
--seq (integer; starts at 1 and increments by 1)
--run_id (string; unique per execution)
+ -event_time (ISO-8601 UTC, e.g. 2026-02-10T12:34:56.789Z)
+ -ingest_time (ISO-8601 UTC)
+ -device_id (string)
+ -event_type (string)
+ -seq (integer; starts at 1 and increments by 1)
+ -run_id (string; unique per execution)
 
 ## 18. Strict error handling and exit codes
 Required behavior:
@@ -202,27 +204,182 @@ Required behavior:
 2.Exit with code 1 for runtime errors (for example, file I/O failures).
 3.Print errors to stderr.
 3.Reject invalid arguments:
-    -count <= 0.
-    -interval < 0.
-    -unknown event_type.
+ -count <= 0.
+ -interval < 0.
+ -unknown event_type.
 4.If the program is interrupted (Ctrl-C), it must shut down gracefully.
 
 ## 19. The code 
 Using the hints given we wrote the code that is saved as `event_generator.py`.
+# Extended Wastebin Device Behavior
+State Persistence and `--starting-total`
+The program maintains persistent state by reading the existing JSONL log file.
+## Default Behavior (No `--starting-total` Provided)
+If `--starting-total` is not provided:
+
+- The program reads the last `deposit_total` value from the existing output file.
+- The new execution continues from that value.
+- This allows the wastebin to "remember" its previous content.
+## Override Behavior (`--starting-total` Provided)
+If `--starting-total` is specified:
+
+- The provided value overrides the stored value.
+- The internal `deposit_total` is initialized with the user-defined value.
+- Subsequent deposits increment from that value.
+## Device State Model
+The program simulates a stateful wastebin device.
+It maintains internal state variables that affect event behavior:
+- `lid_open` (boolean)
+- `maintenance_mode` (boolean)
+- `deposit_total` (integer)
+Each new event updates these internal state variables accordingly.
+The state determines whether a `deposit` event is accepted or rejected.
+## Supported Event Types
+## Core Events
+- `deposit`
+- `heartbeat`
+## Extended Events
+- `lid_open`
+- `lid_close`
+- `lid_clear`
+- `maintenance`
+- `maintenance_termination`
+## Event Behavior Rules
+1. `lid_clear`
+Resets the wastebin.
+- Sets `deposit_total = 0`
+- Adds `"action": "cleared"` to the record
+Example:
+```bash
+python event_generator.py --device-id wastebin-01 --event-type lid_clear --count 2 --interval 0.2 --out events.log --starting-total 6
+```
+Result:
+deposit_total becomes 0 regardless of previous value.
+
+2. . lid_open
+Sets:
+```
+lid_open = True
+```
+Deposits are allowed only when the lid is open.
+
+3.lid_close
+Sets:
+```
+lid_open = False
+```
+Deposits are rejected when the lid is closed.
+Rejected deposit example:
+```JSONL
+{
+  "event_type": "deposit",
+  "deposit_delta": 0,
+  "deposit_total": 23,
+  "status": "rejected",
+  "reason": "lid_closed"
+}
+```
+
+4.deposit
+
+Accepted only if:
+```
+lid_open == True
+```
+```
+maintenance_mode == False
+```
+If accepted:
+ -`deposit_delta` is added
+ -`deposit_total` increases
+ -`"status"`: "accepted"
+
+If rejected:
+ -`deposit_delta` = 0
+ -`deposit_total` remains unchanged
+ -`"status"`: "rejected"
+ -`"reason"` explains the cause
+
+Example (accepted):
+```JSONL
+{
+  "event_type": "deposit",
+  "deposit_delta": 1,
+  "deposit_total": 7,
+  "starting_total": 6,
+  "status": "accepted"
+}
+```
+5. maintenance
+Sets:
+```
+maintenance_mode = True
+```
+All deposits are rejected while in maintenance mode.
+Rejected example:
+```JSONL
+{
+  "event_type": "deposit",
+  "status": "rejected",
+  "reason": "maintenance_mode"
+}
+```
+6. maintenance_termination
+Sets:
+```
+maintenance_mode = False
+```
+Deposits are allowed again (if the lid is open).
+## Verbose Mode
+1. When `--verbose` is enabled:
+ -The program prints progress information to stdout.
+Progress messages are shown every 5 events.
+Example:
+```
+generated seq=5 type=deposit out=events.log
+generated seq=10 type=deposit out=events.log
+```
+# Example workflow:
+ -`lid_clear` → resets total to 0
+ -`lid_open` → deposits allowed
+ -`deposit` → total increases
+ -`lid_close` → deposits rejected
+ -`maintenance` → deposits rejected
+ -`maintenance_termination` → deposits allowed again (if lid open)
+
+The system preserves state between executions unless overridden by `--starting-total`.
 
 
+# Part-G — Mini-tests
+## 20.Output example 
+Test command used:
+```bash
+python event_generator.py --device-id wastebin-01 --event-type deposit --count 5 --interval 0 --out test_events.log
+```
+Result:
+```json
+{"event_time": "2026-02-28T21:35:11.458Z", "ingest_time": "2026-02-28T21:35:11.459Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 1, "run_id": "4fd96845-d1a2-4451-a0c4-29e6db8473e8", "deposit_delta": 1, "deposit_total": 1, "status": "accepted"}
+```
+## 21.Verify required behavior
+Invalid command 1:
+```bash
+python event_generator.py --device-id wastebin-01 --event-type invalid_type --count 5 --interval 0 --out events.log
+```
+Error:
+```text
+Error: --event-type must be 'deposit', 'heartbeat', 'lid_open', 'lid_close', 'lid_clear', 'maintenance', or 'maintenance_termination'
+```
+Exit code: `2`
 
-
-
-
-
-
-
-
-
-
-
-
+Invalid command 2:
+```bash
+python event_generator.py --device-id wastebin-01 --event-type heartbeat --count 0 --interval 0 --out events.log
+```
+Error:
+```text
+Error: --count must be > 0
+```
+Exit code: `2`
 
 
 # SECTION B - REPORT
@@ -517,6 +674,27 @@ In the Ctrl-C test (`--count 100`, `--interval 0.2`), 33 records were written be
 **Interrupted. Wrote 33 record(s).**
 
 ## H.3
+## RQ51
+- No Python version requirement.
+- No mention of SSH needing to be enabled.
+- No statement about required internet/network access.
+- Hardware assumptions are not documented.
+- Instructions given without exact commands.
+- No clear use of `python3`.
+- No explicit `pip install -r requirements.txt`.
+- Commands are not fully copy-pasteable.
+- Does not specify whether commands should run on:
+  - The laptop, or
+  - The Raspberry Pi.
+
+ ## RQ52
+ - Specified required hardware (Raspberry Pi)
+ - Specified Python version (3.9+)
+ - Stated that SSH, Git, and internet access are required
+ - Clearly indicated whether each command must be executed on the laptop or on the Raspberry Pi.
+ - Replaced unclear instructions such as “install dependencies” with complete, copy-pasteable commands.
+
+
 
 
 
