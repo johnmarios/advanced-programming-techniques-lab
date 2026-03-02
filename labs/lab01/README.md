@@ -694,6 +694,10 @@ In the Ctrl-C test (`--count 100`, `--interval 0.2`), 33 records were written be
  - Clearly indicated whether each command must be executed on the laptop or on the Raspberry Pi.
  - Replaced unclear instructions such as “install dependencies” with complete, copy-pasteable commands.
 
+## RQ0 
+Final merge:
+#3376f3e
+
 
 
 
