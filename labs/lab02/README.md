@@ -43,8 +43,8 @@ Approximately  3 seconds
 Approximately  5 minutes (300 seconds)
 
 ## RQ11:
-Low sensitivity: Approximately 3 meters
-High sensitivity: Approximately 7 meters
+  -Low sensitivity: Approximately 3 meters
+  -High sensitivity: Approximately 7 meters
 
 ## RQ12
 - H mode tends to keep HIGH “as long as motion continues”
