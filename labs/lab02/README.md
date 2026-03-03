@@ -14,3 +14,21 @@ In reality, one trigger can keep the signal `HIGH` for that whole time window.
 ## RQ4
 Warm-up matters because the first **30–60 seconds** can be unstable/noisy.  
 If you log immediately, you may record false motion events.
+
+## RQ5
+By mixing BCM and BOARD numbering, there will be bugs since the pin referenced in the code will not match the physical one.
+
+For example:
+
+- **BCM GPIO17** = **BOARD physical pin 11**
+- **BOARD physical pin 17** = **3V3 power**
+
+## RQ6:
+|Sensor pin |	Pi pin (physical) |	Pi name (BCM) |	Why      |
+|-----------|---------------------|---------------|----------|
+|VCC	    |	                 2|	            5V|power     |
+|GND	    |	                 6|	           GND|reference |
+|OUT	    |	                11|	        GPIO17|input signal|
+
+## RQ7:
+We selected GPIO17(BCM) since it has no special function, thus avoiding future conflicts.
