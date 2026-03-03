@@ -35,3 +35,20 @@ We selected GPIO17(BCM) since it has no special function, thus avoiding future c
 
 ## RQ8:
 ![alt text](RQ8.png)
+
+## RQ9:
+Approximately  3 seconds
+
+## RQ10:
+Approximately  5 minutes (300 seconds)
+
+## RQ11:
+Low sensitivity: Approximately 3 meters
+High sensitivity: Approximately 7 meters
+
+## RQ12
+
+
+## RQ13
+
+
