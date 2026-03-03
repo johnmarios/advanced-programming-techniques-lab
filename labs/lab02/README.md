@@ -32,3 +32,6 @@ For example:
 
 ## RQ7:
 We selected GPIO17(BCM) since it has no special function, thus avoiding future conflicts.
+
+## RQ8:
+![alt text](RQ8.png)
