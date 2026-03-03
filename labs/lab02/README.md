@@ -47,7 +47,8 @@ Low sensitivity: Approximately 3 meters
 High sensitivity: Approximately 7 meters
 
 ## RQ12
-
+-H mode tends to keep HIGH “as long as motion continues”
+-L mode tends to keep HIGH for a fixed TIME window after the motion detection
 
 ## RQ13
 
