@@ -1,3 +1,130 @@
+# Advanced Programming Techniques Lab
+## Team Information
+Members: 
+Marios Ioannis Papadopoulos 1092834
+Filippos Theologos 1092633
+Xristina Tzouda 1097346
+
+---
+# SECTION A - RUNBOOK
+# Part A — Understanding the sensor device
+## Nesessary hardware 
+-   Raspberry Pi 5
+-   HC-SR501 PIR motion sensor
+-   Jumper wires(female to female)
+
+## PIR Sensor Pins
+-   VCC: +4.5V to 20V DC input 
+-   OUT: 3.3V logic output:
+  - 1.LOW = no motion detected
+  - 2.HIGH = motion detected 
+- GND: ground
+
+# Part B — Raspberry Pi GPIO basics 
+## which pins to use on the Raspberry PI 5
+1. Power pins:
+  - 5V pins (physical pins 2 and 4)
+  - 3.3V pin (physical pin 1)
+2. Ground pins (physical pins 6, 9, 14, 20, 25, 30, 34, 39)
+3. GPIO pins (signal pins) 
+
+## Wiring Diagram
+
+    PIR Sensor        Raspberry Pi
+    -----------       -------------
+    VCC  -----------> 5V
+    GND  -----------> GND
+    OUT  -----------> GPIO17
+
+- In this project we used :
+- Physical pin 2 for VCC (5V)
+- Physical pin 6 for GND (Ground)
+- Physical pin 11 for OUT (GPIO17)
+
+# Part C — Wiring the PIR sensor and verifying hardware
+## Common mistakes
+Following the instractions above here are some common wiring mistakes 
+1. OUT connected to 5V (wrong; bypasses GPIO and can cause damage)
+2. VCC connected to 3.3V (often unreliable behavior)
+3. GND not connected (floating signal; random readings)
+4. Using BOARD pin numbers in code while wiring by BCM (or vice versa)
+## Software smoke-test
+In order to run the following smoke test you must connect to the Raspberry Pi 5 using ssh, instructions are given on `lab01`.
+## 0.Wait for warm-up
+After powering the PIR sensor, wait 60 seconds.
+During warm-up the output can be unstable: if you test too early you can confuse “warm-up noise” with “wiring problems”.
+## 1.Clone Repository
+``` bash
+git clone <https://github.com/johnmarios/advanced-programming-techniques-lab/tree/main/labs/lab02>
+cd <repository>
+```
+## 2. implement `pir_smoke_test.py`.
+- Create a new file:
+File: labs/lab02/pir_smoke_test.py
+- Run the code using the commad (on the laptop connected to the rpi5):
+  ``` bash
+  python pir_smoke_test.py
+- Expected output:
+  ![alt text](RQ8.png)
+## 3.Debug 
+1. Confirm pir = MotionSensor(pin) matches the GPIO you wired OUT to (BCM numbering).
+2. Re-check VCC is on 5V, not 3.3V.
+3. Re-check GND is connected.
+4. Wait full warm-up.
+
+## 4. “Play” with the sensor knobs 
+1. Set TIME to minimum:
+   the result should be shown within **3 seconds**
+2. Set TIME to maximum:
+   the result should be shown within **300 seconds (~5 minutes)**
+3. Set sensitivity low and stand ~1m away and move :
+   the reliable trigger distance is about **2–3 m**
+4. Set  sensitivity high and repeat the process :
+   the reliable trigger distance is about **5–7 m**
+
+# Part D — Software setup
+## Use a venv
+As shown in lab01 we must use a Python virtual environment .
+To get to the repo follow the instructions given on lab01.
+On the laptop connected via ssh to rpi5 run:
+```bash
+python3 -m venv venv
+```
+Then run :
+```bash
+source venv/bin/activate
+```
+Create a `requirments.txt` inside the lab02 folder and write:
+```
+gpiozero==2.0.1
+```
+
+# Part E — From “signal” to “event” 
+## 0. Repository Structure
+ labs/lab02/
+├── pirlib/
+│   ├── __init__.py
+│   ├── sampler.py
+│   └── interpreter.py
+├── pir_print.py
+├── pir_event_logger.py
+└── README.md
+
+## 1.Explanation for each program
+- Pirlib library.
+1. `pirlib/sampler.py` : Reads raw GPIO signal (HIGH/LOW) from the Pi using gpiozero.
+2. `pirlib/interpreter.py` : Applies interpretation logic (anti-spam + filtering) and returns semantic events.
+- Programs
+3. `pir_print.py` : Human-readable “what events am I producing?” tool.
+4. `pir_event_logger.py` : As shown in lab01, JSONL logger (append-only, seq/run_id, timestamps, Ctrl-C safe).
+
+
+
+
+
+
+  
+# SECTION B - REPORT
 ## RQ1
 A PIR sensor is **passive** and **no-contact**.  
 It does not emit energy; it only detects changes in infrared heat from movement.
