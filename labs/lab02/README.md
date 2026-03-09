@@ -346,9 +346,7 @@ t=  15.03s motion_detected
 ```
 
 ## RQ21
-Add a screenshot of your board here (Backlog / In Progress / Done), e.g.:
-
-`![Kanban board](RQ21_board.png)`
+![alt text](image.png)
 
 ## RQ22
 Example coordination bug prevented by the board:
