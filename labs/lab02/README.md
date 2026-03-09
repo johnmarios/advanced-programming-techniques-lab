@@ -304,7 +304,7 @@ Chosen cooldown: **5 s**.
 Reason: close to PIR reset behavior (~5–6 s), so it reduces duplicate detections.
 
 ## RQ16
-Observed brief spikes: **no obvious spikes detected**.
+Observed brief spikes: **no obvious spikes detected**.  
 Chosen `min_high`: **0.2 s** to ignore short false spikes.
 
 The detections were spaced roughly 5-7 seconds apart, which is expected since the cooldown is 5 seconds. Therefore, `min_high = 0.2 s` appears sufficient as a small noise filter.
