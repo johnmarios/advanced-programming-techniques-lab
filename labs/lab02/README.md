@@ -221,7 +221,7 @@ nl   --verbose
 [logger] done. run_id=cfa17779-11e9-445d-8231-6d9029059e0c records_written=11
 ```
 - The following is what it is saved :
-  ```
+```
   {"event_time": "2026-03-09T18:12:55.407Z", "ingest_time": "2026-03-09T18:12:55.407Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 1, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
 {"event_time": "2026-03-09T18:13:02.111Z", "ingest_time": "2026-03-09T18:13:02.111Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 2, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
 {"event_time": "2026-03-09T18:13:07.815Z", "ingest_time": "2026-03-09T18:13:07.815Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 3, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
@@ -233,7 +233,7 @@ nl   --verbose
 {"event_time": "2026-03-09T18:13:44.042Z", "ingest_time": "2026-03-09T18:13:44.042Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 9, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
 {"event_time": "2026-03-09T18:13:49.546Z", "ingest_time": "2026-03-09T18:13:49.546Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 10, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
 {"event_time": "2026-03-09T18:13:54.849Z", "ingest_time": "2026-03-09T18:13:54.849Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 11, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
-    
+ ```   
 # SECTION B - REPORT
 ## RQ1
 A PIR sensor is **passive** and **no-contact**.  
