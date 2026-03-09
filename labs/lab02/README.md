@@ -72,7 +72,11 @@ File: labs/lab02/pir_smoke_test.py
 3. Re-check GND is connected.
 4. Wait full warm-up.
 
-## 4. “Play” with the sensor knobs 
+## 4. Sensor knobs
+There are also two potentiometers on the board to adjust parameters:
+1. SENSITIVITY potentiometer : Sets the maximum detection distance (approx. 3m to 7m). Real range depends on room topology and placement.
+2. TIME potentiometer : Sets how long OUT stays HIGH after detection: ~3s to ~300s (5 minutes).
+## “Play” with the sensor knobs 
 1. Set TIME to minimum:
    the result should be shown within **3 seconds**
 2. Set TIME to maximum:
@@ -110,18 +114,28 @@ gpiozero==2.0.1
 ├── pir_event_logger.py
 └── README.md
 
-## 1.Explanation for each program
-- Pirlib library.
-1. `pirlib/sampler.py` : Reads raw GPIO signal (HIGH/LOW) from the Pi using gpiozero.
-2. `pirlib/interpreter.py` : Applies interpretation logic (anti-spam + filtering) and returns semantic events.
-- Programs
-3. `pir_print.py` : Human-readable “what events am I producing?” tool.
-4. `pir_event_logger.py` : As shown in lab01, JSONL logger (append-only, seq/run_id, timestamps, Ctrl-C safe).
-
-## Explaining the code 
-
-
-
+## 1. Explaining the code 
+## Pirlib library
+# sampler.py
+- Purpose : Reads raw GPIO signal (HIGH/LOW) from the Pi using gpiozero.
+- The sampler performs periodic polling of the GPIO input. Instead of reacting to interrupts, the program periodically checks the sensor state.
+- Sampling frequency is controlled by `--sample-interval`
+- If the interval :
+ 1. Is too slow : short events may be missed
+ 2. Is too fast : excessive CPU usage and noisy logs
+# PirSampler on Main Class
+- Purpose :
+  1. Connect to the specified GPIO pin
+  2. Read the current sensor value
+  3. Return the raw HIGH / LOW state
+- Typical Workflow :
+  ```bash
+  sampler = PirSampler(pin)
+  value = sampler.read()
+  ```
+ - Return values:
+   1 → motion signal HIGH
+   0 → no motion
 
   
 # SECTION B - REPORT
