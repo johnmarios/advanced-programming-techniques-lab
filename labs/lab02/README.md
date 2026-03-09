@@ -178,16 +178,16 @@ gpiozero==2.0.1
     
 - Example Output with minimum time delay and cooldown = 5.0s
   ```
-[print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
-t=   3.40s motion_detected
-t=  11.61s motion_detected
-t=  18.01s motion_detected
-t=  25.12s motion_detected
-t=  30.82s motion_detected
-t=  38.93s motion_detected
-t=  46.33s motion_detected
-t=  53.74s motion_detected
-t=  59.64s motion_detected
+    [print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
+    t=   3.40s motion_detected
+    t=  11.61s motion_detected
+    t=  18.01s motion_detected
+    t=  25.12s motion_detected
+    t=  30.82s motion_detected
+    t=  38.93s motion_detected
+    t=  46.33s motion_detected
+    t=  53.74s motion_detected
+    t=  59.64s motion_detected
 
 
     
