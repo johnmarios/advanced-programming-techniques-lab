@@ -132,7 +132,7 @@ gpiozero==2.0.1
   ```
   sampler = PirSampler(pin)
   value = sampler.read()
-  ```
+  
  - Return values:
    1 → motion signal HIGH
    0 → no motion
@@ -169,13 +169,16 @@ gpiozero==2.0.1
    --pin 17 --sample-interval 0.1 --cooldown 5 --min-high 0.2 --duration 60
    ```
 - Example Output :
-    ``` [print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
+    ```
+   [print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
    t=   0.20s motion_detected
    t=  16.31s motion_detected
    t=  35.52s motion_detected
    t=  54.63s motion_detected
+    
 - Example Output with minimum time delay and cooldown = 5.0s
-  ``` [print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
+  ```
+[print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
 t=   3.40s motion_detected
 t=  11.61s motion_detected
 t=  18.01s motion_detected
