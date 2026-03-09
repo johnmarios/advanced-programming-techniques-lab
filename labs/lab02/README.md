@@ -118,7 +118,7 @@ gpiozero==2.0.1
 3. `pir_print.py` : Human-readable “what events am I producing?” tool.
 4. `pir_event_logger.py` : As shown in lab01, JSONL logger (append-only, seq/run_id, timestamps, Ctrl-C safe).
 
-
+## Explaining the code 
 
 
 
