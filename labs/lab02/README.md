@@ -1,9 +1,9 @@
 # Advanced Programming Techniques Lab
 ## Team Information
 Members: 
-Marios Ioannis Papadopoulos 1092834
-Filippos Theologos 1092633
-Xristina Tzouda 1097346
+- Marios Ioannis Papadopoulos 1092834
+- Filippos Theologos 1092633
+- Xristina Tzouda 1097346
 
 ---
 # SECTION A - RUNBOOK
@@ -188,8 +188,51 @@ gpiozero==2.0.1
     t=  46.33s motion_detected
     t=  53.74s motion_detected
     t=  59.64s motion_detected
+# pir_event_logger.py
+- Purpose :  JSONL logger (append-only, seq/run_id, timestamps, Ctrl-C safe).
+- The program uses the `PirSampler` and `PirInterpreter` classes from the pirlib library to convert raw sensor signals into filtered motion events.
+# Command line arguments 
+- `--device-id` : Identifier for the sensor device
+- `--pin` : GPIO pin connected to the PIR sensor
+- `--sample-interval` : Time between sensor readings
+- `--duration` : Total runtime of the program
+- `--out` : Output log file
+- `--verbose` : Enables additional console output
+----
 
-
+- Example Usage
+```
+--device-id pir-01   --pin 17   --sample-interval 0.1   --cooldown 5   --min-high 0.2   --duration 60   --out motion_events.jso
+nl   --verbose
+```
+- Example Output :
+``` [logger] device=pir-01 pin=17 interval=0.1s cooldown=5.0s min_high=0.2s duration=60.0s out=motion_events.jsonl
+[logger] seq=1 event_time=2026-03-09T18:12:55.407Z ingest_time=2026-03-09T18:12:55.407Z
+[logger] seq=2 event_time=2026-03-09T18:13:02.111Z ingest_time=2026-03-09T18:13:02.111Z
+[logger] seq=3 event_time=2026-03-09T18:13:07.815Z ingest_time=2026-03-09T18:13:07.815Z
+[logger] seq=4 event_time=2026-03-09T18:13:13.722Z ingest_time=2026-03-09T18:13:13.722Z
+[logger] seq=5 event_time=2026-03-09T18:13:19.125Z ingest_time=2026-03-09T18:13:19.125Z
+[logger] seq=6 event_time=2026-03-09T18:13:24.729Z ingest_time=2026-03-09T18:13:24.729Z
+[logger] seq=7 event_time=2026-03-09T18:13:31.233Z ingest_time=2026-03-09T18:13:31.233Z
+[logger] seq=8 event_time=2026-03-09T18:13:36.937Z ingest_time=2026-03-09T18:13:36.937Z
+[logger] seq=9 event_time=2026-03-09T18:13:44.042Z ingest_time=2026-03-09T18:13:44.042Z
+[logger] seq=10 event_time=2026-03-09T18:13:49.546Z ingest_time=2026-03-09T18:13:49.546Z
+[logger] seq=11 event_time=2026-03-09T18:13:54.849Z ingest_time=2026-03-09T18:13:54.849Z
+[logger] done. run_id=cfa17779-11e9-445d-8231-6d9029059e0c records_written=11
+```
+- The following is what it is saved :
+  ```
+  {"event_time": "2026-03-09T18:12:55.407Z", "ingest_time": "2026-03-09T18:12:55.407Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 1, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:02.111Z", "ingest_time": "2026-03-09T18:13:02.111Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 2, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:07.815Z", "ingest_time": "2026-03-09T18:13:07.815Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 3, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:13.722Z", "ingest_time": "2026-03-09T18:13:13.722Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 4, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:19.125Z", "ingest_time": "2026-03-09T18:13:19.125Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 5, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:24.729Z", "ingest_time": "2026-03-09T18:13:24.729Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 6, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:31.233Z", "ingest_time": "2026-03-09T18:13:31.233Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 7, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:36.937Z", "ingest_time": "2026-03-09T18:13:36.937Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 8, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:44.042Z", "ingest_time": "2026-03-09T18:13:44.042Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 9, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:49.546Z", "ingest_time": "2026-03-09T18:13:49.546Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 10, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
+{"event_time": "2026-03-09T18:13:54.849Z", "ingest_time": "2026-03-09T18:13:54.849Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 11, "run_id": "cfa17779-11e9-445d-8231-6d9029059e0c", "pin": 17, "sample_interval_s": 0.1, "cooldown_s": 5.0, "min_high_s": 0.2}
     
 # SECTION B - REPORT
 ## RQ1
