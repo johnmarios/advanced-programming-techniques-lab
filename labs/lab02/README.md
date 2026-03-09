@@ -123,13 +123,13 @@ gpiozero==2.0.1
 - If the interval :
  1. Is too slow : short events may be missed
  2. Is too fast : excessive CPU usage and noisy logs
-# PirSampler on Main Class
-- Purpose :
+# PirSampler class 
+- What it actually does:
   1. Connect to the specified GPIO pin
   2. Read the current sensor value
   3. Return the raw HIGH / LOW state
 - Typical Workflow :
-  ```bash
+  ```
   sampler = PirSampler(pin)
   value = sampler.read()
   ```
@@ -137,6 +137,20 @@ gpiozero==2.0.1
    1 → motion signal HIGH
    0 → no motion
 # interpreter.py
+- Purpose : Applies interpretation logic (anti-spam + filtering) and returns semantic events.
+- This module implements filtering logic to avoid noisy or duplicate detections. Without this layer the system would log many repeated messages while the signal remains HIGH.
+# PirInterpreter class
+- What it does on the code :
+1. Detect motion events
+2. Filter noisy signals
+3. Apply cooldown periods
+4. Prevent duplicate events
+- Event Detection Logic
+  - The interpreter implements the "once per HIGH window" policy.
+  - Example : LOW -> HIGH transition -> Generate one motion event
+- While the signal remains HIGH no additional events are produced.
+- A new event is only generated after the following sequence :
+  - HIGH -> LOW -> HIGH
 
   
 # SECTION B - REPORT
