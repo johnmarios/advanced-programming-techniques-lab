@@ -132,7 +132,7 @@ gpiozero==2.0.1
   ```
   sampler = PirSampler(pin)
   value = sampler.read()
-  ```
+  
  - Return values:
    1 → motion signal HIGH
    0 → no motion
@@ -151,8 +151,46 @@ gpiozero==2.0.1
 - While the signal remains HIGH no additional events are produced.
 - A new event is only generated after the following sequence :
   - HIGH -> LOW -> HIGH
+# Aditional filters 
+- `--cooldown` : Cooldown prevents events from being generated too frequently.
+  - Example
+    ``` --cooldown 5
+    This means that after detecting motion, the system will ignore new detections for 5 seconds.
+- `--min-high` : This parameter filters out short spikes.
+  - Example
+    ``` --min-high 0.2
+    The signal must remain HIGH for at least 0.2 seconds before it is considered valid motion.
+## Programs 
+# `pir_print.py`
+- Purpose : Human-readable “what events am I producing?” tool.
+- It reads raw signals from the PIR sensor using `PirSampler` , processes them using `PirInterpreter`, and prints interpreted motion events to the console.
+- Example Usage :
+   ```bash
+   --pin 17 --sample-interval 0.1 --cooldown 5 --min-high 0.2 --duration 60
+   ```
+- Example Output :
+    ```
+   [print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
+   t=   0.20s motion_detected
+   t=  16.31s motion_detected
+   t=  35.52s motion_detected
+   t=  54.63s motion_detected
+    
+- Example Output with minimum time delay and cooldown = 5.0s
+  ```
+    [print] pin=17 interval=0.1s cooldown=5.0s min_high=0.2s
+    t=   3.40s motion_detected
+    t=  11.61s motion_detected
+    t=  18.01s motion_detected
+    t=  25.12s motion_detected
+    t=  30.82s motion_detected
+    t=  38.93s motion_detected
+    t=  46.33s motion_detected
+    t=  53.74s motion_detected
+    t=  59.64s motion_detected
 
-  
+
+    
 # SECTION B - REPORT
 ## RQ1
 A PIR sensor is **passive** and **no-contact**.  
