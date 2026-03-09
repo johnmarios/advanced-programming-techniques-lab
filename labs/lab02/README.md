@@ -304,14 +304,25 @@ Chosen cooldown: **5 s**.
 Reason: close to PIR reset behavior (~5–6 s), so it reduces duplicate detections.
 
 ## RQ16
-Observed brief spikes: **yes, mostly during warm-up**.
+Observed brief spikes: **no obvious spikes detected**.
 Chosen `min_high`: **0.2 s** to ignore short false spikes.
+
+The detections were spaced roughly 5-7 seconds apart, which is expected since the cooldown is 5 seconds. Therefore, `min_high = 0.2 s` appears sufficient as a small noise filter.
+
 
 ## RQ17
 Latency for 3 records (ingest_time - event_time):
-- record 1: **12 ms**
-- record 2: **15 ms**
-- record 3: **11 ms**
+
+```
+seq=1 event_time=2026-03-09T18:12:55.407Z ingest_time=2026-03-09T18:12:55.407Z
+seq=2 event_time=2026-03-09T18:13:02.111Z ingest_time=2026-03-09T18:13:02.111Z
+seq=3 event_time=2026-03-09T18:13:07.815Z ingest_time=2026-03-09T18:13:07.815Z
+```
+- record 1: **0 ms**
+- record 2: **0 ms**
+- record 3: **0 ms**
+
+The latency is practically 0 ms 
 
 ## RQ18
 The interpreter prevents spam by emitting only **one motion event per HIGH window**.
