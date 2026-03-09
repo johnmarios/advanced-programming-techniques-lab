@@ -11,18 +11,18 @@ def main():
     p.add_argument("--duration", type=float, default=30.0)
     args = p.parse_args()
 
-    sampler = PirSampler(args.pin) # reads the output of the sensor on the specified GPIO pin
+    sampler = PirSampler(args.pin) 
     interp = PirInterpreter(cooldown_s=args.cooldown, min_high_s=args.min_high)  
 
-    t0 = time.time() # start time for relative timestamps
-    end = t0 + args.duration # end time for the loop
+    t0 = time.time() 
+    end = t0 + args.duration 
 
     print(f"[print] pin={args.pin} interval={args.sample_interval}s cooldown={args.cooldown}s min_high={args.min_high}s")
 
     try:
         while time.time() < end:
             now = time.time()
-            raw = sampler.read() # low/high
+            raw = sampler.read() 
             for ev in interp.update(raw, now):
                 print(f"t={ev['t']-t0:7.2f}s {ev['kind']}")
             time.sleep(args.sample_interval)
