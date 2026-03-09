@@ -118,9 +118,7 @@
 ###
 
 import argparse
-from email import parser
 import json
-from pathlib import Path
 import sys
 import time
 from datetime import datetime, timezone
@@ -128,7 +126,6 @@ import uuid
 
 from pirlib.interpreter import PirInterpreter
 from pirlib.sampler import PirSampler
-import argparse
 
 
 def create_run_id() -> str:
@@ -163,30 +160,20 @@ def validate_args(args):
     '''Validate the parsed command-line arguments and exit with an error message if any validation fails.'''
     # exit code 2 for invalid command-line arguments, exit code 1 for runtime errors (e.g. file I/O errors)
     if args.pin < 0:
-        parser.error("--pin must be >= 0")
+        raise ValueError("--pin must be >= 0")
     if args.sample_interval <= 0:
-        parser.error("--sample-interval must be > 0")
+        raise ValueError("--sample-interval must be > 0")
     if args.cooldown < 0:
-        parser.error("--cooldown must be >= 0")
+        raise ValueError("--cooldown must be >= 0")
     if args.min_high < 0:
-        parser.error("--min-high must be >= 0")
+        raise ValueError("--min-high must be >= 0")
     if args.duration <= 0:
-        parser.error("--duration must be > 0")
-
-def append_jsonl_newline(path: Path) -> None:
-    with path.open("a", encoding="utf-8") as f:
-        f.write("\n")
-
-def append_jsonl_line(path: Path, record: dict) -> None:
-    # One JSON object per line, append-only
-    with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(record) + "\n")
+        raise ValueError("--duration must be > 0")
 
 
 def main() -> int:
 	args = parse_args()
 	validate_args(args)
-	out_path = Path(args.out)
 	run_id = create_run_id()    
 	seq = 0
 	written = 0
@@ -222,10 +209,11 @@ def main() -> int:
 						"run_id": run_id,
 						"pin": args.pin,
 						"sample_interval_s": args.sample_interval,
-						"cooldown": args.cooldown,
+						"cooldown_s": args.cooldown,
 						"min_high_s": args.min_high,
 					}
-					append_jsonl_line(out_path, record)
+					fp.write(json.dumps(record) + "\n")
+					fp.flush()
 					written += 1
 
 					if args.verbose:
