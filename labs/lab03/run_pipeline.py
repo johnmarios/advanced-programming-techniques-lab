@@ -53,6 +53,10 @@ def add_metrics(event, metrics):
     if event["kind"] == "motion":
         metrics["consumed"] += 1
 
+def metrics_integrate(metrics, event)->dict:
+    '''integrate metrics into record'''
+    event["metrics"] = metrics.copy()
+    return event
 
 def producer():
     pass
