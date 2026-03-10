@@ -95,11 +95,28 @@ def consumer_loop():
 def producer_loop():
 	run_id = create_run_id() 
 	seq = 0
+
     while not stop_flag_is_set:
 		now = time.time()
 		raw = sampler.read()
 
+		record = create_event(
+                event_time = args.event_time,
+				ingest_time = args.ingest_time,
+				device_id = args.device_id,
+				event_type = "motion",
+				motion_state = "detected",
+				seq = args.seq,
+				run_id = run_id,
+				pin = args.pin,
+				sample_interval_s = args.sample_interval,
+				cooldown_s = args.cooldown,
+				min_high_s = args.min_high,
+            )
 
+            append_jsonl_line(out_path, record)
+        
+            written += 1
 
 
 
