@@ -8,10 +8,9 @@ from datetime import datetime, timezone
 import uuid
 from pathlib import Path
 
-from labs.lab03.pirlib import sampler
+from lab03.pirlib import sampler
 from pirlib.interpreter import PirInterpreter
 from pirlib.sampler import PirSampler
-
 
 
 
@@ -83,8 +82,28 @@ def create_event(event_time: str, device_id: str, event_type: str, seq: int, run
     return record
 
 
-def consumer_loop():
-    pass
+def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Path):
+	with out_path.open("a", encoding="utf-8") as f:
+		while not stop_flag["stop"] or not record_q.empty():
+			try:
+				record = record_q.get(timeout=0.5)
+				if record is None:
+					continue
+			except Exception as exc:
+				print(f"[consumer] queue get error: {exc}", file=sys.stderr)
+				continue
+
+			ingest_time = utc_now_iso()  # time when we consume the event and write to file
+			record["ingest_time"] = ingest_time
+			# Parse event and ingest times to datetime objects.
+			parsed_event_time = datetime.fromisoformat(record["event_time"].replace("Z", "+00:00"))
+			parsed_ingest_time = datetime.fromisoformat(ingest_time.replace("Z", "+00:00"))
+			record["pipeline_latency_ms"] = (parsed_ingest_time - parsed_event_time).total_seconds() * 1000
+
+			f.write(json.dumps(record) + "\n")
+			f.flush()
+			metrics["consumed"] += 1
+
       
 def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict):
 	run_id = create_run_id() 
@@ -94,17 +113,17 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict):
 	interp = PirInterpreter(cooldown_s=args.cooldown, min_high_s=args.min_high)
 
 	while not stop_flag["stop"]:
-		
+		 # while the duration has not elapsed and no stop signal from Ctrl-C
 		try:
 			now = time.time()
-			raw = sampler.read()
+			raw = sampler.read() # read the raw sensor value (e.g. 0 or 1 for PIR)
 		except Exception as exc:
 			print(f"[producer] sensor read error: {exc}", file=sys.stderr)
 			continue
 
 		for event in interp.update(raw, now):
 			seq += 1
-			event_time = epoch_to_utc_iso(event["t"])
+			event_time = epoch_to_utc_iso(event["t"]) 
 
 			record = create_event(
 					event_time = event_time,
@@ -115,16 +134,19 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict):
 					run_id = run_id,
 				)
 			try:
-				event_q.put_nowait(record)
+				event_q.put_nowait(record) # puts without blocking until queue is full
+				# i want the expection to be able to be raised to regulate the behavior 
 				metrics["produced"] += 1
 
 				if args.verbose:
+					# print: [producer] queued seq=1 state=detected event_time=2024-06-01T12:00:00.000Z
 					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}")
 
 
 			except queue.Full:
 				metrics["dropped"] += 1
 				if args.verbose:
+					# print: [producer] queue full, dropped seq=1
 					print(f"[producer] queue full, dropped seq={seq}", file=sys.stderr)
 		time.sleep(args.sample_interval)
 
@@ -144,7 +166,7 @@ def main() -> int:
 		"max_queue": 0,
 	}
 
-	stop_flag = {"stop": False}
+	stop_flag = {"stop": False} # mutable flag to signal producer and consumer loops to stop
 
 	try:
 		sampler = PirSampler(args.pin)
@@ -168,7 +190,7 @@ def main() -> int:
 		print(f"[logger] runtime error: {exc}", file=sys.stderr)
 		return 1
 
-	print(f"[logger] done. run_id={run_id} records_written={written}")
+	print(f"[logger] done. records_written={written}")
 	return 0
 
 
