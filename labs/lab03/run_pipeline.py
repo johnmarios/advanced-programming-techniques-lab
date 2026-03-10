@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import uuid
 from pathlib import Path
 
-from lab03.pirlib import sampler
+from pirlib import sampler
 from pirlib.interpreter import PirInterpreter
 from pirlib.sampler import PirSampler
 import threading
