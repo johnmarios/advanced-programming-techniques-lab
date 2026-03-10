@@ -93,8 +93,8 @@ def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Pat
 		while not stop_flag["stop"] or not record_q.empty():
 			try:
 				record = record_q.get(timeout=0.5)
-				if record is None:
-					continue
+			except queue.Empty:
+				continue
 			except Exception as exc:
 				print(f"[consumer] queue get error: {exc}", file=sys.stderr)
 				continue
@@ -110,8 +110,8 @@ def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Pat
 			f.flush()
 			metrics["consumed"] += 1
 			# monitor the queue size to see how full it gets during execution, which can help identify bottlenecks or capacity issues in the pipeline
-			current_q = record_q.qsize()
-			metrics["max_queue"] = max(metrics["max_queue"], current_q)
+			#current_q = record_q.qsize()
+			#metrics["max_queue"] = max(metrics["max_queue"], current_q)
 			# mark the queue task as done 
 			record_q.task_done()
 			# if we have consumer delay, sleep for that delay to simulate processing time
@@ -149,6 +149,8 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler:
 				event_q.put_nowait(record) # puts without blocking until queue is full
 				# i want the expection to be able to be raised to regulate the behavior 
 				metrics["produced"] += 1
+				current_q = event_q.qsize()
+				metrics["max_queue"] = max(metrics["max_queue"], current_q)
 
 				if args.verbose:
 					# print: [producer] queued seq=1 state=detected event_time=2024-06-01T12:00:00.000Z
@@ -236,6 +238,7 @@ def main() -> int:
         f"max_queue={metrics['max_queue']}"
     )
 
+	return 0
 
 if __name__ == "__main__":
 	raise SystemExit(main())
