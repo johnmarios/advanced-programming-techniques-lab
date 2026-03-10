@@ -11,6 +11,7 @@ from pathlib import Path
 from lab03.pirlib import sampler
 from pirlib.interpreter import PirInterpreter
 from pirlib.sampler import PirSampler
+import threading
 
 
 
@@ -39,6 +40,7 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument("--duration", type=float, default=60.0)
 	parser.add_argument("--out", required=True)
 	parser.add_argument("--queue-size", type=int, default=10)
+	parser.add_argument("--consumer-delay", type=float, default=0.0)
 	parser.add_argument("--verbose", action="store_true")
 	
 	return parser.parse_args()
@@ -58,6 +60,8 @@ def validate_args(args):
         raise ValueError("--duration must be > 0")
     if args.queue_size <= 0:
         raise ValueError("--queue-size must be > 0")
+    if args.consumer_delay < 0:
+        raise ValueError("--consumer-delay must be >= 0")
     
 
 def append_jsonl_newline(path: Path) -> None:
@@ -82,7 +86,9 @@ def create_event(event_time: str, device_id: str, event_type: str, seq: int, run
     return record
 
 
-def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Path):
+def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Path, consumer_delay: float):
+	# args=(event_q, args.out, args, metrics, stop_flag)
+	# args=(event_q, args.out, metrics, stop_flag, consumer_delay),
 	with out_path.open("a", encoding="utf-8") as f:
 		while not stop_flag["stop"] or not record_q.empty():
 			try:
@@ -103,14 +109,20 @@ def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Pat
 			f.write(json.dumps(record) + "\n")
 			f.flush()
 			metrics["consumed"] += 1
-
+			# monitor the queue size to see how full it gets during execution, which can help identify bottlenecks or capacity issues in the pipeline
+			current_q = record_q.qsize()
+			metrics["max_queue"] = max(metrics["max_queue"], current_q)
+			# mark the queue task as done 
+			record_q.task_done()
+			# if we have consumer delay, sleep for that delay to simulate processing time
+			if consumer_delay > 0:
+				time.sleep(consumer_delay)
+	
       
-def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict):
+def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler: PirSampler, interp: PirInterpreter):
+	# args=(event_q, sampler, interp, args, metrics, stop_flag)
 	run_id = create_run_id() 
 	seq = 0
-
-	sampler = PirSampler(args.pin)
-	interp = PirInterpreter(cooldown_s=args.cooldown, min_high_s=args.min_high)
 
 	while not stop_flag["stop"]:
 		 # while the duration has not elapsed and no stop signal from Ctrl-C
@@ -156,7 +168,6 @@ def main() -> int:
 	args = parse_args()
 	validate_args(args)   
 	
-	written = 0
 	event_q = Queue(maxsize=args.queue_size)
 	
 	metrics = {
@@ -166,7 +177,7 @@ def main() -> int:
 		"max_queue": 0,
 	}
 
-	stop_flag = {"stop": False} # mutable flag to signal producer and consumer loops to stop
+	stop_flag = {"stop": False}
 
 	try:
 		sampler = PirSampler(args.pin)
@@ -178,20 +189,52 @@ def main() -> int:
 				f"cooldown={args.cooldown}s min_high={args.min_high}s duration={args.duration}s out={args.out}"
 			)
 
-		t_end = time.time() + args.duration
-     #########################
+		producer_t = threading.Thread(
+			target=producer_loop,
+			args=(args, stop_flag, event_q, metrics, sampler, interp),
+			daemon=True,
+		)
+
+		consumer_t = threading.Thread(
+			target=consumer_loop,	
+			args=(event_q, stop_flag, metrics, Path(args.out), args.consumer_delay),
+			daemon=True,
+		)
+
+		producer_t.start()
+		consumer_t.start()
+
+		start_t = time.time()
+
+		try:
+			while (time.time() - start_t) < args.duration:
+				if args.verbose:
+					print(
+						f"[status] produced={metrics['produced']} "
+						f"consumed={metrics['consumed']} "
+						f"dropped={metrics['dropped']} "
+						f"queue={event_q.qsize()} "
+						f"max_queue={metrics['max_queue']}"
+					)
+				time.sleep(1.0)
+		except KeyboardInterrupt:
+			print("\n[main] Ctrl-C: stopping...")
+		finally:
+			stop_flag["stop"] = True
+			producer_t.join()
+			consumer_t.join()
 
 
-
-	except KeyboardInterrupt:
-		print(f"\n[logger] Ctrl-C: exit. records_written={written}")
-		return 0
 	except Exception as exc:
 		print(f"[logger] runtime error: {exc}", file=sys.stderr)
 		return 1
 
-	print(f"[logger] done. records_written={written}")
-	return 0
+	print(
+        f"[logger] done. produced={metrics['produced']} "
+        f"consumed={metrics['consumed']} "
+        f"dropped={metrics['dropped']} "
+        f"max_queue={metrics['max_queue']}"
+    )
 
 
 if __name__ == "__main__":
