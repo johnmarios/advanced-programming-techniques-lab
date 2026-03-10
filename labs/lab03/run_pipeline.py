@@ -86,8 +86,7 @@ def create_event(event_time: str, device_id: str, event_type: str, seq: int, run
     return record
 
 
-def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Path, consumer_delay: float):
-	# args=(event_q, args.out, args, metrics, stop_flag)
+def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Path, consumer_delay: float, verbose: bool):	# args=(event_q, args.out, args, metrics, stop_flag)
 	# args=(event_q, args.out, metrics, stop_flag, consumer_delay),
 	with out_path.open("a", encoding="utf-8") as f:
 		while not stop_flag["stop"] or not record_q.empty():
@@ -109,6 +108,11 @@ def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Pat
 			f.write(json.dumps(record) + "\n")
 			f.flush()
 			metrics["consumed"] += 1
+			if verbose:
+				print(
+					f"[consumer] wrote seq={record['seq']} "
+					f"latency_ms={record['pipeline_latency_ms']:.3f}"
+				)
 			# monitor the queue size to see how full it gets during execution, which can help identify bottlenecks or capacity issues in the pipeline
 			#current_q = record_q.qsize()
 			#metrics["max_queue"] = max(metrics["max_queue"], current_q)
@@ -199,7 +203,7 @@ def main() -> int:
 
 		consumer_t = threading.Thread(
 			target=consumer_loop,	
-			args=(event_q, stop_flag, metrics, Path(args.out), args.consumer_delay),
+			args=(event_q, stop_flag, metrics, Path(args.out), args.consumer_delay ,args.verbose),
 			daemon=True,
 		)
 
