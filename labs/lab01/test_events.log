@@ -1,0 +1,10 @@
+{"event_time": "2026-02-28T13:12:49.131Z", "ingest_time": "2026-02-28T13:12:49.131Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 1, "run_id": "155cbbc8-b214-43b8-b756-c37bc47c1ee9", "deposit_delta": 0, "deposit_total": 0, "status": "rejected", "reason": "lid_closed"}
+{"event_time": "2026-02-28T13:12:49.132Z", "ingest_time": "2026-02-28T13:12:49.132Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 2, "run_id": "155cbbc8-b214-43b8-b756-c37bc47c1ee9", "deposit_delta": 0, "deposit_total": 0, "status": "rejected", "reason": "lid_closed"}
+{"event_time": "2026-02-28T13:12:49.133Z", "ingest_time": "2026-02-28T13:12:49.133Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 3, "run_id": "155cbbc8-b214-43b8-b756-c37bc47c1ee9", "deposit_delta": 0, "deposit_total": 0, "status": "rejected", "reason": "lid_closed"}
+{"event_time": "2026-02-28T13:12:49.134Z", "ingest_time": "2026-02-28T13:12:49.134Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 4, "run_id": "155cbbc8-b214-43b8-b756-c37bc47c1ee9", "deposit_delta": 0, "deposit_total": 0, "status": "rejected", "reason": "lid_closed"}
+{"event_time": "2026-02-28T13:12:49.135Z", "ingest_time": "2026-02-28T13:12:49.135Z", "device_id": "wastebin-01", "event_type": "deposit", "seq": 5, "run_id": "155cbbc8-b214-43b8-b756-c37bc47c1ee9", "deposit_delta": 0, "deposit_total": 0, "status": "rejected", "reason": "lid_closed"}
+
+{"event_time": "2026-02-28T13:12:49.287Z", "ingest_time": "2026-02-28T13:12:49.287Z", "device_id": "wastebin-01", "event_type": "heartbeat", "seq": 1, "run_id": "4f020014-425e-4521-9b04-5469f9fe0146", "status": "online"}
+{"event_time": "2026-02-28T13:12:49.288Z", "ingest_time": "2026-02-28T13:12:49.288Z", "device_id": "wastebin-01", "event_type": "heartbeat", "seq": 2, "run_id": "4f020014-425e-4521-9b04-5469f9fe0146", "status": "online"}
+{"event_time": "2026-02-28T13:12:49.289Z", "ingest_time": "2026-02-28T13:12:49.289Z", "device_id": "wastebin-01", "event_type": "heartbeat", "seq": 3, "run_id": "4f020014-425e-4521-9b04-5469f9fe0146", "status": "online"}
+
