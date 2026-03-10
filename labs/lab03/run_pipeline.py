@@ -1,6 +1,7 @@
 from queue import Queue
 import argparse
 import json
+import queue
 import sys
 import time
 from datetime import datetime, timezone
@@ -41,6 +42,7 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument("--queue-size", type=int, default=10)
 	parser.add_argument("--verbose", action="store_true")
 	
+	return parser.parse_args()
 
 def validate_args(args):
     '''Validate the parsed command-line arguments and exit with an error message if any validation fails.'''
@@ -56,11 +58,8 @@ def validate_args(args):
     if args.duration <= 0:
         raise ValueError("--duration must be > 0")
     if args.queue_size <= 0:
-		raise ValueError("--queue-size must be > 0")		
-	if args.event_type not in {'device-id', 'pin', 'sample-interval', 'cooldown', 'min-high', 'duration', 'out', 'queue-size', 'verbose'}:
-		print("Error: --event-type must be one of the allowed values", file=sys.stderr)
-		raise SystemExit(2)
-
+        raise ValueError("--queue-size must be > 0")
+    
 
 def append_jsonl_newline(path: Path) -> None:
     with path.open("a", encoding="utf-8") as f:
@@ -71,20 +70,15 @@ def append_jsonl_line(path: Path, record: dict) -> None:
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
 
-def create_event(event_time: str, ingest_time: str, device_id: str, event_type: str, seq: int, run_id: str, pin: int, sample_interval: float, cooldown: float, min_high: float ) -> dict:
+def create_event(event_time: str, device_id: str, event_type: str, seq: int, run_id: str, motion_state: str) -> dict:
     '''Create a single event record dictionary based on the provided parameters.'''
     record = {
-        "event_time": event_time,
-		"ingest_time": ingest_time,
-		"device_id": device_id,
-		"event_type": "motion",
-		"motion_state": "detected",
-		"seq": seq,
-		"run_id": run_id,
-		"pin": pin,
-		"sample_interval_s": sample_interval,
-		"cooldown_s": cooldown,
-		"min_high_s": min_high,
+        "event_time" : event_time,
+		"device_id" : device_id,
+		"event_type" : event_type,
+		"motion_state" : motion_state,
+		"seq" : seq,
+		"run_id" : run_id
     }
     return record
 
@@ -92,34 +86,49 @@ def create_event(event_time: str, ingest_time: str, device_id: str, event_type: 
 def consumer_loop():
     pass
       
-def producer_loop():
+def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict):
 	run_id = create_run_id() 
 	seq = 0
 
-    while not stop_flag_is_set:
-		now = time.time()
-		raw = sampler.read()
+	sampler = PirSampler(args.pin)
+	interp = PirInterpreter(cooldown_s=args.cooldown, min_high_s=args.min_high)
 
-		record = create_event(
-                event_time = args.event_time,
-				ingest_time = args.ingest_time,
-				device_id = args.device_id,
-				event_type = "motion",
-				motion_state = "detected",
-				seq = args.seq,
-				run_id = run_id,
-				pin = args.pin,
-				sample_interval_s = args.sample_interval,
-				cooldown_s = args.cooldown,
-				min_high_s = args.min_high,
-            )
+	while not stop_flag["stop"]:
+		
+		try:
+			now = time.time()
+			raw = sampler.read()
+		except Exception as exc:
+			print(f"[producer] sensor read error: {exc}", file=sys.stderr)
+			continue
 
-            append_jsonl_line(out_path, record)
-        
-            written += 1
+		for event in interp.update(raw, now):
+			seq += 1
+			event_time = epoch_to_utc_iso(event["t"])
+
+			record = create_event(
+					event_time = event_time,
+					device_id = args.device_id,
+					event_type = "motion",
+					motion_state = "detected",
+					seq = seq,
+					run_id = run_id,
+				)
+			try:
+				event_q.put_nowait(record)
+				metrics["produced"] += 1
+
+				if args.verbose:
+					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}")
 
 
+			except queue.Full:
+				metrics["dropped"] += 1
+				if args.verbose:
+					print(f"[producer] queue full, dropped seq={seq}", file=sys.stderr)
+		time.sleep(args.sample_interval)
 
+		
 
 def main() -> int:
 	args = parse_args()
