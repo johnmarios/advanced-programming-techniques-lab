@@ -45,12 +45,19 @@ The consumer :
 2. enriches each record with an ingest timestamp and pipeline latency
 3. writes it as a single JSON line to the output file
 ## RQ12
-
-
-#
-
-
-
+- Record 1 :
+  ```{"event_time": "2026-03-14T20:09:54.980Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 1, "run_id": "7b496f39-408b-             4f00-9287-b14a3416eae4", "ingest_time": "2026-03-14T20:09:54.980Z", "pipeline_latency_ms": 0.0}
+- Record 2 :
+  ```{"event_time": "2026-03-14T20:10:07.194Z", "device_id": "pir-01", "event_type": "motion", "motion_state": "detected", "seq": 3, "run_id": "7b496f39-408b-            4f00-9287-b14a3416eae4", "ingest_time": "2026-03-14T20:10:07.195Z", "pipeline_latency_ms": 1.0}
+- Explanation :
+  - `event_time` : The timestamp when the PIR sensor detected motion
+  - `device_id` : The identifier of the device
+  - `event_type` : The category of the event
+  - `motion_state` : The detected state
+  - ` seq` : A sequential counter for events within the current pipeline run
+  - `run_id` : Identify the entire pipeline run
+  - `ingest_time` : The timestamp when we actually wrote the record to the file
+  - `pipeline_latency_ms` : The difference (in ms) between `event_time` and `ingest_time` — the queue delay
 
 
 
