@@ -6,7 +6,7 @@ The rest of the team joined as invited collaborators.
 
 Members: 
 Marios Ioannis Papadopoulos 1092834
-Filippos Theologos 1092633
+Filippos Neofytos Theologos 1092633
 Xristina Tzouda 1097346
 
 ---
