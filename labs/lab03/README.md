@@ -532,14 +532,20 @@ No, the queue did not need to absorb any slowdown, because there was no real slo
 ## RQ16
 The queue value grows and stays elevated in the status lines, and events start getting dropped
 1. Example : high-delay test 
-   ```[status] produced=4 consumed=1 dropped=2 queue=2 max_queue=2
+```
+[status] produced=4 consumed=1 dropped=2 queue=2 max_queue=2
+```
 2. Example : No delay test
-   ```[status] produced=3 consumed=3 dropped=0 queue=0 max_queue=1
+```
+[status] produced=3 consumed=3 dropped=0 queue=0 max_queue=1
+```
 ## RQ17
 A bounded queue is more informative because it forces the system to make a visible, measurable decision when it runs out of space.
 An unbounded queue on the other hand just keeps silently accepting events, so from the outside everything looks fine, no drops, no errors.
 1. Example of bounded queue - high delay test :
-   ```[status] produced=4 consumed=1 dropped=2 queue=2 max_queue=2
+```
+ [status] produced=4 consumed=1 dropped=2 queue=2 max_queue=2
+```
    this makes it clear that our queue is full and events are being lost     
 ## RQ18
 
