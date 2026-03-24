@@ -121,6 +121,7 @@ def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Pat
 			# if we have consumer delay, sleep for that delay to simulate processing time
 			if consumer_delay > 0:
 				time.sleep(consumer_delay)
+		append_jsonl_newline(out_path) # add a newline at the end of the file for cleanliness after we're done consuming all records
 	
       
 def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler: PirSampler, interp: PirInterpreter):
