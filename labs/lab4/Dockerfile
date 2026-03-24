@@ -1,6 +1,8 @@
 # Slim Python base image
 FROM python:3.11-slim
 
+# buffering
+ENV PYTHONUNBUFFERED=1
 # Set the working directory inside the container
 WORKDIR /lab4
 
@@ -18,5 +20,5 @@ COPY run_pipeline.py .
 RUN mkdir -p /lab4/output
 
 # Default command when the container starts
-CMD ["python", "run_pipeline.py", "--out", "/lab4/output/results.json", "--device-id", "dev1", "pin", "17"]
+CMD ["python", "run_pipeline.py", "--out", "/lab4/output/results.json", "--device-id", "dev1", "--pin", "17"]
 
