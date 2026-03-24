@@ -158,7 +158,7 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler:
 
 				if args.verbose:
 					# print: [producer] queued seq=1 state=detected event_time=2024-06-01T12:00:00.000Z
-					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}",,flush = True)
+					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}",flush = True)
 
 
 			except queue.Full:
