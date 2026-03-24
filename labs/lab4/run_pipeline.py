@@ -95,10 +95,11 @@ def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Pat
 				record = record_q.get(timeout=0.5)
 				if record is None:
 					continue
-			
+			except queue.Empty:
+				continue
 			except Exception as exc:
     			print(f"[consumer] REAL error: {exc}", file=sys.stderr)
-   				 continue
+   				continue
 
 			ingest_time = utc_now_iso()  # time when we consume the event and write to file
 			record["ingest_time"] = ingest_time
