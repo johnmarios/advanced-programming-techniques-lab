@@ -154,14 +154,14 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler:
 
 				if args.verbose:
 					# print: [producer] queued seq=1 state=detected event_time=2024-06-01T12:00:00.000Z
-					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}")
+					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}", flush = True)
 
 
 			except queue.Full:
 				metrics["dropped"] += 1
 				if args.verbose:
 					# print: [producer] queue full, dropped seq=1
-					print(f"[producer] queue full, dropped seq={seq}", file=sys.stderr)
+					print(f"[producer] queue full, dropped seq={seq}", file=sys.stderr, flush = True)
 		time.sleep(args.sample_interval)
 
 		
@@ -216,7 +216,7 @@ def main() -> int:
 						f"consumed={metrics['consumed']} "
 						f"dropped={metrics['dropped']} "
 						f"queue={event_q.qsize()} "
-						f"max_queue={metrics['max_queue']}"
+						f"max_queue={metrics['max_queue']}", flush = True
 					)
 				time.sleep(1.0)
 		except KeyboardInterrupt:
