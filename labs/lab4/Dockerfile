@@ -18,5 +18,5 @@ COPY run_pipeline.py .
 RUN mkdir -p /lab4/output
 
 # Default command when the container starts
-CMD ["python", "run_pipeline.py", "--output", "/lab4/output/results.json"]
+CMD ["python", "run_pipeline.py", "--out", "/lab4/output/results.json", "--device-id", "dev1", "pin", "17"]
 
