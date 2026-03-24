@@ -111,7 +111,7 @@ def consumer_loop(record_q: Queue, stop_flag: dict, metrics: dict, out_path: Pat
 			if verbose:
 				print(
 					f"[consumer] wrote seq={record['seq']} "
-					f"latency_ms={record['pipeline_latency_ms']:.3f}"
+					f"latency_ms={record['pipeline_latency_ms']:.3f}",flush = True
 				)
 			# monitor the queue size to see how full it gets during execution, which can help identify bottlenecks or capacity issues in the pipeline
 			#current_q = record_q.qsize()
@@ -158,7 +158,7 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler:
 
 				if args.verbose:
 					# print: [producer] queued seq=1 state=detected event_time=2024-06-01T12:00:00.000Z
-					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}")
+					print(f"[producer] queued seq={seq} state={record['motion_state']} event_time={event_time}",,flush = True)
 
 
 			except queue.Full:
@@ -192,7 +192,7 @@ def main() -> int:
 		if args.verbose:
 			print(
 				f"[logger] device={args.device_id} pin={args.pin} interval={args.sample_interval}s "
-				f"cooldown={args.cooldown}s min_high={args.min_high}s duration={args.duration}s out={args.out}"
+				f"cooldown={args.cooldown}s min_high={args.min_high}s duration={args.duration}s out={args.out}",flush = True
 			)
 
 		producer_t = threading.Thread(
@@ -220,7 +220,7 @@ def main() -> int:
 						f"consumed={metrics['consumed']} "
 						f"dropped={metrics['dropped']} "
 						f"queue={event_q.qsize()} "
-						f"max_queue={metrics['max_queue']}"
+						f"max_queue={metrics['max_queue']}",flush = True
 					)
 				time.sleep(1.0)
 		except KeyboardInterrupt:
