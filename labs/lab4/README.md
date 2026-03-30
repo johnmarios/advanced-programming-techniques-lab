@@ -161,6 +161,26 @@ That gave us an expected output based on lab03 :
       PinFactoryFallback: Falling back from lgpio: 'can not open gpiochip'
       warnings.warn(
 - This shows that GPIO passthrough inside a container can be less straightforward than running directly on the host.
+
+## Use docker-compose 
+- Bsed on the prototype given we wrote the code on `docher-compose.yml`.
+- Start it:
+  ```docker compose up --build
+- `--build` forces a rebuild of the image. Without it, Compose uses the last built image, which might be stale if you changed your code.
+- To stop
+  ``` docker compose down
+- To verify data persistence, stop and start again:
+  ```docker compose down
+      docker compose up
+## Slow consumer
+
+The `command` field overrides the `CMD` from the Dockerfile, just like passing arguments after the image name in `docker run`.
+## The code and the results we had 
+- ![alt text](dock_1.png)
+- ![alt text](dock_3.png)
+- ![alt text](dock_2.png)
+- ![alt text](dock_4.png)
+- ![alt text](dock_5.png)
 ---
 # SECTION B - REPORT
 ## RQ1
