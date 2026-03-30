@@ -29,9 +29,139 @@ Members:
 - By default every docker command would need sudo. To fix that, add your user to the docker group:
   ```bash
         sudo usermod -aG docker $USER
+- This change only takes effect in new login sessions. To confirm it worked, after logging back in run:
+  ```bash
+        groups
+  ```
+  - Then run :
+    ```bash
+           docker run hello-world
+- If you see a success message, Docker is installed and your user has the correct permissions.
+## Create the Dockerfile 
+- Following the instructions given we wrote the dockerfile given in the folder
+- We made sure `requirements.txt` includes `rpi-lgpio` so GPIO access works inside the container
+## Create a dockerignore 
+- When Docker builds an image, it sends the entire directory (the “build context”) to the Docker daemon. Without .dockerignore, it copies your virtual environment, bytecode cache, old output files, and the git history.
+## Build the image
+On bush run:
+```
+cd labs/lab04/
+docker build -t motion-pipeline .
+```
+Docker reads the Dockerfile, executes each instruction, and produces an image tagged motion-pipeline. 
+In order to check what was built run :
+```
+docker images
+```
+Which gave the following result:
+```
+IMAGE                   ID             DISK USAGE   CONTENT SIZE
+motion-pipeline:latest  245bb8276625   232MB        50.7MB
+```
+## Run the container 
+Before running, create a local directory for the output:
+```
+mkdir -p output
+```
+Then on bush run the following :
+```
+docker run --rm --privileged   --device /dev/gpiomem   --device /dev/gpiochip0   --device /dev/gpiochip4   -v $(pwd)/output:/data   motion-pipeline
+/usr/local/lib/python3.11/site-packages/gpiozero/devices.py:300
+```
+That gave us an expected output based on lab03 :
+```
+[logger] device=dev1 pin=17 interval=0.1s cooldown=0.0s min_high=0.0s duration=60.0s out=/lab4/output/results.json
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[status] produced=0 consumed=0 dropped=0 queue=0 max_queue=0
+[producer] queued seq=1 state=detected event_time=2026-03-24T16:45:48.982Z
+[consumer] wrote seq=1 latency_ms=0.000
+[status] produced=1 consumed=1 dropped=0 queue=0 max_queue=1
+[status] produced=1 consumed=1 dropped=0 queue=0 max_queue=1
+[status] produced=1 consumed=1 dropped=0 queue=0 max_queue=1
+[status] produced=1 consumed=1 dropped=0 queue=0 max_queue=1
+[status] produced=1 consumed=1 dropped=0 queue=0 max_queue=1
+[status] produced=1 consumed=1 dropped=0 queue=0 max_queue=1
+[producer] queued seq=2 state=detected event_time=2026-03-24T16:45:54.787Z
+[consumer] wrote seq=2 latency_ms=0.000
+[status] produced=2 consumed=2 dropped=0 queue=0 max_queue=1
+[status] produced=2 consumed=2 dropped=0 queue=0 max_queue=1
+[status] produced=2 consumed=2 dropped=0 queue=0 max_queue=1
+[producer] queued seq=3 state=detected event_time=2026-03-24T16:45:58.490Z
+[consumer] wrote seq=3 latency_ms=0.000
+[status] produced=3 consumed=3 dropped=0 queue=0 max_queue=1
+[status] produced=3 consumed=3 dropped=0 queue=0 max_queue=1
+[status] produced=3 consumed=3 dropped=0 queue=0 max_queue=1
+[status] produced=3 consumed=3 dropped=0 queue=0 max_queue=1
+[status] produced=3 consumed=3 dropped=0 queue=0 max_queue=1
+[producer] queued seq=4 state=detected event_time=2026-03-24T16:46:02.793Z
+[consumer] wrote seq=4 latency_ms=0.000
+[status] produced=4 consumed=4 dropped=0 queue=0 max_queue=1
+[status] produced=4 consumed=4 dropped=0 queue=0 max_queue=1
+[status] produced=4 consumed=4 dropped=0 queue=0 max_queue=1
+[status] produced=4 consumed=4 dropped=0 queue=0 max_queue=1
+[producer] queued seq=5 state=detected event_time=2026-03-24T16:46:06.896Z[consumer] wrote seq=5 latency_ms=0.000
 
-  
+[status] produced=5 consumed=5 dropped=0 queue=0 max_queue=1
+[status] produced=5 consumed=5 dropped=0 queue=0 max_queue=1
+[status] produced=5 consumed=5 dropped=0 queue=0 max_queue=1
+[status] produced=5 consumed=5 dropped=0 queue=0 max_queue=1
+[status] produced=5 consumed=5 dropped=0 queue=0 max_queue=1
+[status] produced=5 consumed=5 dropped=0 queue=0 max_queue=1
+[producer] queued seq=6 state=detected event_time=2026-03-24T16:46:12.701Z
+[consumer] wrote seq=6 latency_ms=0.000
+[status] produced=6 consumed=6 dropped=0 queue=0 max_queue=1
+[status] produced=6 consumed=6 dropped=0 queue=0 max_queue=1
+[status] produced=6 consumed=6 dropped=0 queue=0 max_queue=1
+[status] produced=6 consumed=6 dropped=0 queue=0 max_queue=1
+[producer] queued seq=7 state=detected event_time=2026-03-24T16:46:16.804Z
+[consumer] wrote seq=7 latency_ms=0.000
+[status] produced=7 consumed=7 dropped=0 queue=0 max_queue=1
+[status] produced=7 consumed=7 dropped=0 queue=0 max_queue=1
+[status] produced=7 consumed=7 dropped=0 queue=0 max_queue=1
+[producer] queued seq=8 state=detected event_time=2026-03-24T16:46:19.907Z
+[consumer] wrote seq=8 latency_ms=0.000
+[status] produced=8 consumed=8 dropped=0 queue=0 max_queue=1
+[status] produced=8 consumed=8 dropped=0 queue=0 max_queue=1
+[status] produced=8 consumed=8 dropped=0 queue=0 max_queue=1
+[status] produced=8 consumed=8 dropped=0 queue=0 max_queue=1
+[status] produced=8 consumed=8 dropped=0 queue=0 max_queue=1
+[producer] queued seq=9 state=detected event_time=2026-03-24T16:46:25.111Z
+[consumer] wrote seq=9 latency_ms=0.000
+[status] produced=9 consumed=9 dropped=0 queue=0 max_queue=1
+[status] produced=9 consumed=9 dropped=0 queue=0 max_queue=1
+[status] produced=9 consumed=9 dropped=0 queue=0 max_queue=1
+[status] produced=9 consumed=9 dropped=0 queue=0 max_queue=1
+[producer] queued seq=10 state=detected event_time=2026-03-24T16:46:28.714Z
+[consumer] wrote seq=10 latency_ms=0.000
+[status] produced=10 consumed=10 dropped=0 queue=0 max_queue=1
+[status] produced=10 consumed=10 dropped=0 queue=0 max_queue=1
+[status] produced=10 consumed=10 dropped=0 queue=0 max_queue=1
+[status] produced=10 consumed=10 dropped=0 queue=0 max_queue=1
+[producer] queued seq=11 state=detected event_time=2026-03-24T16:46:32.717Z[consumer] wrote seq=11 latency_ms=0.000
 
+[status] produced=11 consumed=11 dropped=0 queue=0 max_queue=1
+[status] produced=11 consumed=11 dropped=0 queue=0 max_queue=1
+[status] produced=11 consumed=11 dropped=0 queue=0 max_queue=1
+[status] produced=11 consumed=11 dropped=0 queue=0 max_queue=1
+[status] produced=11 consumed=11 dropped=0 queue=0 max_queue=1
+[producer] queued seq=12 state=detected event_time=2026-03-24T16:46:37.721Z
+[consumer] wrote seq=12 latency_ms=1.000
+[status] produced=12 consumed=12 dropped=0 queue=0 max_queue=1
+[status] produced=12 consumed=12 dropped=0 queue=0 max_queue=1
+[logger] done. produced=12 consumed=12 dropped=0 max_queue=1
+```
+- It also gave us th following warning :
+  ```
+      PinFactoryFallback: Falling back from lgpio: 'can not open gpiochip'
+      warnings.warn(
+- This shows that GPIO passthrough inside a container can be less straightforward than running directly on the host.
 ---
 # SECTION B - REPORT
 ## RQ1
