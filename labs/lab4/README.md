@@ -66,7 +66,6 @@ mkdir -p output
 Then on bush run the following :
 ```
 docker run --rm --privileged   --device /dev/gpiomem   --device /dev/gpiochip0   --device /dev/gpiochip4   -v $(pwd)/output:/data   motion-pipeline
-/usr/local/lib/python3.11/site-packages/gpiozero/devices.py:300
 ```
 That gave us an expected output based on lab03 :
 ```
