@@ -165,12 +165,15 @@ That gave us an expected output based on lab03 :
 ## Use docker-compose 
 - Bsed on the prototype given we wrote the code on `docher-compose.yml`.
 - Start it:
-  ```docker compose up --build
+  ```
+       docker compose up --build
 - `--build` forces a rebuild of the image. Without it, Compose uses the last built image, which might be stale if you changed your code.
 - To stop
-  ``` docker compose down
+  ```
+      docker compose down
 - To verify data persistence, stop and start again:
-  ```docker compose down
+  ```
+      docker compose down
       docker compose up
 ## Slow consumer
 
