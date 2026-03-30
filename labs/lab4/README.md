@@ -186,8 +186,11 @@ The memory limit had no effect on the Pi. The container continued running and us
 ## RQ9
 Edge devices run multiple services on constrained hardware. Without limits, one misbehaving container (memory leak, infinite loop) can consume all RAM or CPU and crash the entire system. 
 ## RQ10
+The advantage of writing a docker-compose.yml instead of using docker run with flags is that it avoids long and complex docker run commands and makes it easier to manage, reproduce, and run applications with a single command.
 ## RQ11
+A bind mount uses a folder from the host system, so you can directly see and edit the files, while a named volume is managed by Docker and stores data in its own internal location.
 ## RQ12
+`restart: unless-stopped` means the container will automatically restart if it crashes or stops, unless it is manually stopped by the user. This is important for an edge device because it ensures the application keeps running reliably without manual intervention, even after failures or reboots.
 ## RQ13
 A virtual enviroment isolates Python packages. It does not isolate the Python interpreter version, system C libraries , the operating system, or processes. Other processes on the host can still see and interfere with it.
 ## RQ14
