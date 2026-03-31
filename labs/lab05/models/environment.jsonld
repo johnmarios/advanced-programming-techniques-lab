@@ -1,0 +1,11 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "bot": "https://w3id.org/bot#"
+  },
+  "@id": "urn:dev:team-06:environment-01",
+  "@type": "owl:Class",
+  "name": "environment-01",
+  "description": "The classroom in which the bin is deployed"
+
+}

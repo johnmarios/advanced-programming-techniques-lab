@@ -1,0 +1,13 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "sosa": "http://www.w3.org/ns/sosa/"
+  },
+  "@id": "urn:dev:team-06:wastebin-01",
+  "@type": "Wastebin",
+  "name": "wastebin-01",
+  "description": "A simple wastebin for waste disposal",
+  "capacity" : "400ml",
+  "material": "plastic",
+  "lidopens": "manually"
+}

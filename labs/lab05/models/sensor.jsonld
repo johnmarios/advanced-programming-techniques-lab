@@ -3,10 +3,20 @@
     "@vocab": "https://schema.org/",
     "sosa": "http://www.w3.org/ns/sosa/",
     "ssn": "http://www.w3.org/ns/ssn/",
-    "lab801": "your own context?"
+    "lab801": "https://gbouloukakis.com/courses/ck801-s26/labs/data_models/"
   },
-  "@id": "urn:dev:team-05:pir-01",
-  "@type": "Something",
-  "name": "name for the sensor",
-  "description": "HC-SR501 passive infrared motion sensor ..."
+  "@id": "urn:dev:team-06:pir-01",
+  "@type": "PirSensor",
+  "name": "pir motion-sensor-01",
+  "description": "HC-SR501 passive infrared motion sensor",
+  "connection": "GPIO",
+  "pins": {
+    "VCC": 2,
+    "GND": 6,
+    "OUT": 17
+  },
+  "range": "7m",
+  "cooldown": "5s"
 }
+
+
