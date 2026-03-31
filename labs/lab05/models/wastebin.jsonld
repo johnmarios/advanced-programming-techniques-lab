@@ -1,13 +1,37 @@
 {
   "@context": {
     "@vocab": "https://schema.org/",
-    "sosa": "http://www.w3.org/ns/sosa/"
-  },
-  "@id": "urn:dev:team-06:wastebin-01",
-  "@type": "Wastebin",
-  "name": "wastebin-01",
-  "description": "A simple wastebin for waste disposal",
-  "capacity" : "400ml",
-  "material": "plastic",
-  "lidopens": "manually"
+    "sosa": "http://www.w3.org/ns/sosa/",
+    "ssn": "http://www.w3.org/ns/ssn/",
+    "ck801": "https://gbouloukakis.com/courses/ck801-s26/labs/data_models/"
+    },
+    "@id": "urn:dev:team-06:wastebin-01",
+    "@type": ["Product", "Wastebin"],
+
+    "schema:name": "Wastebin 01",
+    "schema:description": "plastic wastebin",
+
+    "ck801:material": "plastic",
+    "ck801:capacityLiters": 40,
+
+    "ck801:dimensions": { 
+        "height": 1.0, 
+        "width": 0.5, 
+        "depth": 0.5, 
+        "unit": "m"
+    },
+
+    "ck801:color": "grey",
+    "ck801:wasteType": "paper",
+
+    "ck801:collectionZone": "Zone A",
+    "ck801:status": "active",
+
+    "sosa:hosts": [
+    { "@id": "urn:dev:team-06:pir-01" }
+    ],
+
+    "ck801:location": { 
+        "@id": "urn:dev:team-06:environment-01" 
+    }   
 }

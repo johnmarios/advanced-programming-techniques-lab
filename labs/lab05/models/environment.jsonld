@@ -1,11 +1,27 @@
 {
   "@context": {
     "@vocab": "https://schema.org/",
-    "bot": "https://w3id.org/bot#"
+    "bot": "https://w3id.org/bot#",
+    "geo": "http://www.opengis.net/ont/geosparql#",
+    "ck801": "https://gbouloukakis.com/courses/ck801-s26/labs/data_models/"
   },
-  "@id": "urn:dev:team-06:environment-01",
-  "@type": "owl:Class",
-  "name": "environment-01",
-  "description": "The classroom in which the bin is deployed"
 
+  "@id": "urn:dev:team-06:environment-01",
+  "@type": ["bot:Space", "Place"],
+
+  "name": "Kypes",
+  "description": "classroom where wastebin-01 is deployed.",
+
+  "geo:hasGeometry": {
+    "geo:asWKT": "POINT(23.7283 37.9838)"
+  },
+  "ck801:environmentType": "indoor",
+  "ck801:zone": "Zone A",
+  "ck801:traffic": "high",
+  "ck801:containsWastebin": [
+    { "@id": "urn:dev:team-06:wastebin-01" }
+  ],
+  "ck801:containsSensor": [
+    { "@id": "urn:dev:team-06:pir-01" }
+  ]
 }
