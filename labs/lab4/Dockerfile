@@ -3,6 +3,7 @@ FROM python:3.11-slim
 
 # buffering
 ENV PYTHONUNBUFFERED=1
+
 # Set the working directory inside the container
 WORKDIR /lab4
 
