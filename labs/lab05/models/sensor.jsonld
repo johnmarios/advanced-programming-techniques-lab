@@ -1,0 +1,12 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "sosa": "http://www.w3.org/ns/sosa/",
+    "ssn": "http://www.w3.org/ns/ssn/",
+    "lab801": "your own context?"
+  },
+  "@id": "urn:dev:team-05:pir-01",
+  "@type": "Something",
+  "name": "name for the sensor",
+  "description": "HC-SR501 passive infrared motion sensor ..."
+}
