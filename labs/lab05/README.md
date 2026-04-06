@@ -105,7 +105,7 @@ Every motion detection event is captured as an `sosa:Observation` with semantic 
   "device_id": "urn:dev:team-06:pir-01",
   "wastebin_id": "urn:dev:team-06:wastebin-01",
   "environment_id": "urn:dev:team-06:environment-01",
-  "event_type": "ck801:Motion",
+  "event_type": "motion",
   "motion_state": "detected",
   "seq": 1,
   "run_id": "a1b2c3d4-e5f6-...",
@@ -115,7 +115,7 @@ Every motion detection event is captured as an `sosa:Observation` with semantic 
 ```
 
 **Key Fields Explained:**
-- `@context`: Points to `models/context.jsonld`, which maps field names to standard ontology terms (sosa:resultTime, sosa:madeBySensor, ck801:Motion, etc.)
+- `@context`: Points to `models/context.jsonld`, which maps field names to ontology terms (for example sosa:resultTime, sosa:madeBySensor, pipeline:eventType).
 - `@type`: Declares this record as a SOSA Observation (semantic self-description)
 - Entity IRIs: device_id, wastebin_id, environment_id are URNs, enabling linking to their JSON-LD definitions
 - Pipeline metadata: seq, run_id, ingest_time, latency_ms track event flow and performance
@@ -141,9 +141,75 @@ Each line in `events.jsonl` will now be **self-describing**: a reader can:
 3. Follow entity IRIs to `models/sensor.jsonld`, `models/wastebin.jsonld`, `models/environment.jsonld`
 4. Understand the complete deployment context without external documentation
 
+## Pipeline Outputs (Execution Screenshots)
+
+Run command used:
+
+```bash
+sudo python run_pipeline.py \
+  --device-id pir-01 \
+  --pin 17 \
+  --sample-interval 0.1 \
+  --cooldown 5 \
+  --min-high 0.2 \
+  --queue-size 5 \
+  --consumer-delay 20 \
+  --duration 60 \
+  --out motion_pipeline.jsonl \
+  --verbose
+```
+
+Output screenshot 1:
+
+![Pipeline output - part 1](assets/pipeline-output-1.png)
+
+Output screenshot 2:
+
+![Pipeline output - part 2](assets/pipeline-output-2.png)
+
+## What The JSON Output Shows
+
+Use this section to explain what each JSON field means and what the run demonstrates.
+
+```json
+{
+  "@context": "models/context.jsonld",
+  "@type": "sosa:Observation",
+  "event_time": "2026-04-06T...Z",
+  "device_id": "urn:dev:team-06:pir-01",
+  "wastebin_id": "urn:dev:team-06:wastebin-01",
+  "environment_id": "urn:dev:team-06:environment-01",
+  "event_type": "motion",
+  "motion_state": "detected",
+  "seq": 1,
+  "run_id": "...",
+  "ingest_time": "2026-04-06T...Z",
+  "pipeline_latency_ms": 0.0
+}
+```
+
+- `@context`: Maps JSON keys to semantic terms.
+- `@type`: Declares that each line is a SOSA Observation.
+- `event_time`: Time the event was produced by the sensor path.
+- `ingest_time`: Time the event was consumed/written to disk.
+- `pipeline_latency_ms`: Delay between producer and consumer.
+- `seq`: Event order within one run.
+- `run_id`: Unique ID for this execution.
+- `event_type` and `motion_state`: Human-readable motion meaning.
+- `device_id`, `wastebin_id`, `environment_id`: Links each observation to known entities.
+
+Interpretation notes from this run:
+- Queue builds up over time (`max_queue=5`) because consumer delay is high.
+- Once queue is full, events are dropped (`dropped=2`).
+- Latency increases for later events as backlog grows.
+- The JSONL file preserves both semantic context and runtime behavior metrics.
 
 
+![alt text](image.png)
 
+![alt text](image-1.png)
+
+![alt text](image-2.png)
 
 
   

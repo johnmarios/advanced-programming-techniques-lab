@@ -177,6 +177,12 @@ The ontology covers:
 - Range: xsd:string
 - Description: Human-readable motion state emitted by the pipeline (e.g., detected).
 
+### pipeline:eventType
+
+- Domain: sosa:Observation
+- Range: xsd:string
+- Description: Human-readable event category emitted by the pipeline (e.g., motion).
+
 ### pipeline:sequenceNumber
 
 - Domain: sosa:Observation
@@ -218,7 +224,7 @@ The ontology covers:
 In the current context model:
 - event_time maps to sosa:resultTime
 - device_id maps to sosa:madeBySensor (as @id)
-- event_type maps to sosa:observedProperty (as xsd:string)
+- event_type maps to pipeline:eventType (as xsd:string)
 - motion_state maps to pipeline:motionState
 - seq maps to pipeline:sequenceNumber
 - run_id maps to pipeline:runId

@@ -17,7 +17,7 @@
     },
 
     "event_type": {
-      "@id": "sosa:observedProperty",
+      "@id": "pipeline:eventType",
       "@type": "xsd:string"
     },
 
