@@ -201,6 +201,18 @@ The ontology covers:
 - Range: xsd:decimal
 - Description: End-to-end producer-to-consumer latency in milliseconds.
 
+### pipeline:wastebinId
+
+- Domain: sosa:Observation
+- Range: ck801:Wastebin
+- Description: References the wastebin the observation is associated with.
+
+### pipeline:environmentId
+
+- Domain: sosa:Observation
+- Range: bot:Space or schema:Place
+- Description: References the environment the observation is associated with.
+
 ## JSON-LD Mapping Notes
 
 In the current context model:
@@ -212,6 +224,8 @@ In the current context model:
 - run_id maps to pipeline:runId
 - ingest_time maps to pipeline:ingestTime
 - pipeline_latency_ms maps to pipeline:latencyMs
+- wastebin_id maps to pipeline:wastebinId
+- environment_id maps to pipeline:environmentId
 
 ## Versioning
 

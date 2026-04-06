@@ -16,7 +16,9 @@
     "description": "HC-SR501 passive infrared motion sensor",
     "sameAs": "https://arduwiki.com/wiki/Infrared_Human_Body_Motion_Sensor(HC-SR501)",
 
-    "sosa:observes": "Motion",
+    "sosa:observes": {
+    "@id": "ck801:Motion"
+    },
 
     "sosa:isHostedBy": { 
         "@id": "urn:dev:team-06:wastebin-01"

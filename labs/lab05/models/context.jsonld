@@ -21,6 +21,16 @@
       "@type": "@id"
     },
 
+    "wastebin_id": {
+      "@id": "pipeline:wastebinId",
+      "@type": "@id"
+    },
+
+    "environment_id": {
+      "@id": "pipeline:environmentId",
+      "@type": "@id"
+    },
+
     "motion_state": {
       "@id": "pipeline:motionState",
       "@type": "xsd:string"

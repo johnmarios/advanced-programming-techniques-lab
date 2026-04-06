@@ -32,7 +32,10 @@ def epoch_to_utc_iso(epoch_seconds: float) -> str:
 
 def parse_args() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(description="PIR event logger (JSONL)")
+	parser.add_argument("--context", default="models/context.jsonld")
 	parser.add_argument("--device-id", required=True)
+	parser.add_argument("--wastebin-id", default="urn:dev:team-06:wastebin-01")
+	parser.add_argument("--environment-id", default="urn:dev:team-06:environment-01")
 	parser.add_argument("--pin", type=int, required=True)
 	parser.add_argument("--sample-interval", type=float, default=0.1)
 	parser.add_argument("--cooldown", type=float, default=0.0)
@@ -73,11 +76,31 @@ def append_jsonl_line(path: Path, record: dict) -> None:
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
 
-def create_event(event_time: str, device_id: str, event_type: str, seq: int, run_id: str, motion_state: str) -> dict:
+def normalize_entity_id(value: str, default_prefix: str = "urn:dev:team-06:") -> str:
+	if value.startswith("urn:"):
+		return value
+	return f"{default_prefix}{value}"
+
+
+def create_event(
+	event_time: str,
+	device_id: str,
+	wastebin_id: str,
+	environment_id: str,
+	event_type: str,
+	seq: int,
+	run_id: str,
+	motion_state: str,
+	context_iri: str,
+) -> dict:
     '''Create a single event record dictionary based on the provided parameters.'''
     record = {
+		"@context": context_iri,
+		"@type": "sosa:Observation",
         "event_time" : event_time,
-		"device_id" : device_id,
+		"device_id" : normalize_entity_id(device_id),
+		"wastebin_id" : normalize_entity_id(wastebin_id),
+		"environment_id" : normalize_entity_id(environment_id),
 		"event_type" : event_type,
 		"motion_state" : motion_state,
 		"seq" : seq,
@@ -145,10 +168,13 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler:
 			record = create_event(
 					event_time = event_time,
 					device_id = args.device_id,
-					event_type = "motion",
+					wastebin_id = args.wastebin_id,
+					environment_id = args.environment_id,
+					event_type = "ck801:Motion",
 					motion_state = "detected",
 					seq = seq,
 					run_id = run_id,
+					context_iri = args.context,
 				)
 			try:
 				event_q.put_nowait(record) # puts without blocking until queue is full
