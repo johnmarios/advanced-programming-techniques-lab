@@ -157,7 +157,51 @@ We used three vocabularies across our models:
 - schema.org (https://schema.org/) — for general metadata: name, description, manufacturer, Place. It's the most widely understood vocabulary on the web, making our models more accessible.
 - BOT (https://w3id.org/bot#) — the Building Topology Ontology, designed specifically for describing spatial relationships between rooms, floors, and buildings. Used in environment.jsonld.
 - Custom pipeline: namespace — for pipeline-internal fields (seq, run_id, pipeline_latency_ms) that no standard vocabulary covers.
-
+RQ2:** Standard: `@type` (sosa:Sensor), `name`, `description`, `sosa:observes`, `sosa:isHostedBy`. Custom: `ck801:range`, `ck801:cooldown`, `ck801:pins`, `ck801:operatingTemperature`, `ck801:sensingPrinciple`.
+ 
+**RQ3:** Included: capacity, material, dimensions, waste type, zone, status. Excluded: fill level (no sensor yet), maintenance history, battery level. Kept to observable/static properties.
+ 
+**RQ4:** 
+- Sensor: `sosa:isHostedBy` → wastebin, `ck801:deployedIn` → environment
+- Wastebin: `sosa:hosts` → sensor, `ck801:locatedIn` → environment  
+- Environment: `sosa:hosts` → sensor, `ck801:containsWastebins` → wastebin
+ 
+**RQ5:** Cooldown, GPIO pins, sensing principle had no standard terms. Created custom `ck801:` properties documented in `docs/ontology.md`.
+ 
+### Context & Namespace
+ 
+**RQ6:** `event_time` → `sosa:resultTime` (SOSA standard for observation time). `device_id` → `sosa:madeBySensor` (SOSA links observation to sensor). Custom fields like `pipeline_latency_ms` → `pipeline:latencyMs` (pipeline-internal metrics need custom terms).
+ 
+**RQ7:** Used `https://github.com/johnmarios/advanced-programming-techniques-lab/blob/main/docs/ontology.md#`. Persistent GitHub URL is resolvable; trailing `#` allows fragment-based term references.
+ 
+**RQ8:** Before: `"event_time": "2026-04-10T14:32:01.123Z"` was ambiguous (sensor time? processing time?). After mapped to `sosa:resultTime`—standard W3C term meaning "observation result time." Any SOSA-aware tool now understands it automatically.
+ 
+**RQ9:** `@context` maps property names to URIs and declares types. Without it, JSON is valid but uninterpretable. With context, data is self-describing—a parser knows `"7.0"` is a decimal number, not a string.
+ 
+**RQ10:** Used external reference: `"@context": "models/context.jsonld"`. Trade-off: smaller file size vs. requires file access. Alternative: inline every record (portable, large). Alternative: once at start (non-standard JSONL).
+ 
+### The Diagram
+ 
+**RQ11:** See Entity Diagram above. Shows 4 layers: Environment (location), Wastebin (container), Sensor (device), Observation (event). Each references others via `@id` URNs. Observation links to all three entities.
+ 
+### Interoperability & Extensibility
+ 
+**RQ12:** Yes, with caveats. Both teams' observations would have identical JSONL-LD structure using same context. Downstream app recognizes both as valid SOSA observations. But it cannot assume sensor-specific behaviors (range, accuracy)—must inspect sensor metadata via `@id` reference.
+ 
+**RQ13:** Add `models/distance-sensor.jsonld`. Update wastebin: add second `sosa:hosts` entry and `ck801:currentFillLevel`. Update context: add `fill_level` → `pipeline:fillLevelPercent`. Update `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
+ 
+**RQ14:** Missing: maintenance history (when was sensor last serviced?), battery level (when will sensor die?), asset IDs (for accounting), calibration dates (data quality), firmware version (for debugging).
+ 
+**RQ15:** SAREF4WASTEMANAGEMENT is purpose-built for waste systems (collection routes, rich measurements). Our model is simpler, more educational, extensible. SAREF includes `saref:accuracy`, `saref:uncertainty`; we omit statistical metadata.
+ 
+### Reflection
+ 
+**RQ16:** Raw Lab 03 JSONL sits at DATA level (raw facts, no context). JSON-LD version sits at INFORMATION level (contextualized with relationships and metadata). Semantic annotation + entity linking moved it up.
+ 
+**RQ17:** Working data: structured so your code can parse it. Communicative data: self-describing—anyone with the context can understand it. Working data is local; communicative data is portable.
+ 
+**RQ18:** Old way: "Here's motion data. Read our code to understand." New way: "Here's motion data from sensor X in wastebin Y in location Z. The context tells you what everything means." Data now explains itself.
+ 
 
 
 
