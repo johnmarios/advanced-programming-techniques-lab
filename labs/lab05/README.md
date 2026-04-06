@@ -18,6 +18,33 @@ Members:
 - Software:
   - The PIR sensor logic (`sampler.py`, `interpreter.py`) is reused from Lab 02, as well as the pipeline (`run_pipeline.py`)  from lab03.
   - Use a venv just like the previous labs.
+  - Create a docker like it is shown on lab04.
+## Create the model files 
+Using the instructions given on the lab's website we werw able to write the JSONLD documents in order to make the result data readable by everyone, just by following the links
+## Create the ontopology documentation 
+The Ontopoly auto-builds editing forms from your ontology. Define `Wastebin` properties once, get the right UI automatically. Like the JSON-LD `@context`.
+## Update the Pipeline
+- Modify `run_pipeline.py` to include the @context reference and entity links in every output record.
+- Add the following on the file :
+  ```
+
+Then run :
+```
+
+```
+The output :
+
+
+
+
+
+
+
+
+
+  
+
+
 
 # SECTION B - REPORT
 ## RQ1
