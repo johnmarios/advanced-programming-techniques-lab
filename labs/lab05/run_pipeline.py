@@ -170,7 +170,7 @@ def producer_loop(args, stop_flag: dict, event_q: Queue, metrics: dict, sampler:
 					device_id = args.device_id,
 					wastebin_id = args.wastebin_id,
 					environment_id = args.environment_id,
-					event_type = "ck801:Motion",
+					event_type = "motion",
 					motion_state = "detected",
 					seq = seq,
 					run_id = run_id,

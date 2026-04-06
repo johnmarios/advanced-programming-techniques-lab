@@ -18,7 +18,7 @@
 
     "event_type": {
       "@id": "sosa:observedProperty",
-      "@type": "@id"
+      "@type": "xsd:string"
     },
 
     "wastebin_id": {

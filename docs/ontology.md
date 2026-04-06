@@ -218,7 +218,7 @@ The ontology covers:
 In the current context model:
 - event_time maps to sosa:resultTime
 - device_id maps to sosa:madeBySensor (as @id)
-- event_type maps to sosa:observedProperty (as @id)
+- event_type maps to sosa:observedProperty (as xsd:string)
 - motion_state maps to pipeline:motionState
 - seq maps to pipeline:sequenceNumber
 - run_id maps to pipeline:runId
