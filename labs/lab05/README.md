@@ -220,13 +220,13 @@ We used three vocabularies across our models:
 - Custom pipeline: namespace — for pipeline-internal fields (seq, run_id, pipeline_latency_ms) that no standard vocabulary covers.
 
 **RQ2:**  
-From the properties included in our sensor description, in standard vocabulairies belong the following:    
+From the properties included in our sensor description, in standard vocabularies belong the following:    
 `@type` (sosa:Sensor),  
 `name`,   
 `description`,  
 `sosa:isHostedBy`.   
 
-While the ones defined by us are :  
+While custom properties defined in our namespace include:  
 `ck801:range`,   
 `ck801:cooldown`,   
 `ck801:pins`,   
@@ -234,9 +234,7 @@ While the ones defined by us are :
 `ck801:sensingPrinciple`.  
  
 **RQ3:**   
-Properties included in wastebin : `capacity`, `material`, `dimensions`, `waste type`, `zone`, `status`.  
-Excluded: `fill level` (no sensor yet), `maintenance history`, `battery level`.  
-The properties inclued were kept to observable/static properties.
+The wastebin model includes properties such as  `capacity`, `material`, `dimensions`, `waste type`, `zone`, `status`. Properties like `fill level`, `maintenance history`, and `battery level` were excluded because they are either dynamic or require additional sensors. The selected properties focus on static or directly observable characteristics.
  
 **RQ4:** 
 - Sensor: `sosa:isHostedBy` → wastebin, `ck801:deployedIn` → environment
@@ -244,7 +242,8 @@ The properties inclued were kept to observable/static properties.
 - Environment: `sosa:hosts` → sensor, `ck801:containsWastebins` → wastebin
  
 **RQ5:**   
-Properties like cooldown, GPIO pins, sensing principle had no standard terms, thus we were led to  create them : `ck801:` properties documented in `docs/ontology.md`.
+Some properties, such as cooldown, GPIO pins, and sensing principle, are not covered by standard vocabularies. Therefore, they were defined in a custom `ck801` namespace and documented in `docs/ontology.md`.
+
  
 ### Context & Namespace
  
@@ -258,7 +257,7 @@ Used `https://github.com/johnmarios/advanced-programming-techniques-lab/blob/mai
 Before: `"event_time": "2026-04-10T14:32:01.123Z"` was ambiguous (sensor time? processing time?). After mapped to `sosa:resultTime`—standard W3C term meaning "observation result time." Any SOSA-aware tool now understands it automatically.
  
 **RQ9:**   
-`@context` maps property names to URIs and declares types. Without it, JSON is valid but uninterpretable. With `@context`, data is self describing and parser knows `"7.0"` is a decimal number, not a string.
+The `@context` maps property names to well-defined URIs and provides semantic meaning. Without it, JSON data may be valid but lacks interpretation. With @context, the data becomes self-describing and can be correctly understood by machines.
  
 **RQ10:**  
 Used external reference: `"@context": "models/context.jsonld"`. Trade-off: smaller file size vs. requires file access. Alternative: inline every record (portable, large). Alternative: once at start (non-standard JSONL).
@@ -266,7 +265,8 @@ Used external reference: `"@context": "models/context.jsonld"`. Trade-off: small
 ### The Diagram
  
 **RQ11:** 
-See Entity Diagram above. Shows 4 layers: Environment (location), Wastebin (container), Sensor (device), Observation (event). Each references others via `@id` URNs. Observation links to all three entities.
+The diagram shows four layers: Environment (location), Wastebin (container), Sensor (device), and Observation (event). These entities are connected through semantic relationships such as sosa:madeBySensor, sosa:isHostedBy, and ck801:locatedIn. Each entity is identified using @id URNs, allowing them to reference each other. The Observation links to the Sensor, which is hosted by a Wastebin and deployed within an Environment, forming a connected data model.
+
  
 ### Interoperability & Extensibility
  
@@ -275,7 +275,7 @@ Yes, but with some limitations. If both teams use the same JSON-LD context and o
 
  
 **RQ13:**  
-First the model of the ultrasonic sensor `models/distance-sensor.jsonld` must be created. After that the current JSON-LD filesneed to be updated:  
+First the model of the ultrasonic sensor `models/distance-sensor.jsonld` must be created. After that the current JSON-LD files need to be updated:  
 wastebin: add second `sosa:hosts` entry and `ck801:currentFillLevel`.   
 context: add `fill_level` → `pipeline:fillLevelPercent`.  
 And finally in `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
