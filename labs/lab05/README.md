@@ -292,7 +292,7 @@ SAREF4WASTEMANAGEMENT is purpose-built for waste systems (collection routes, ric
 Raw Lab 03 JSONL sits at DATA level (raw facts, no context). JSON-LD version sits at INFORMATION level (contextualized with relationships and metadata). Semantic annotation + entity linking moved it up.
  
 **RQ17:**  
-Data that works focuses only on functionality, it is correctly structured so a system can read and process it without errors, but it may not clearly explain what it represents. In contrast, data that communicates information focuses on meaning. It provides context and clear semantics, allowing both machines and humans to understand what the data actually describes. The key difference is that working data is just usable, while informative data is meaningful.
+Data that works is data that follows the correct structure, so a system can process it without errors. However, it may not clearly express what it represents. Data that communicates information goes beyond structure by adding meaning and context, making it clear what the data describes. The key difference is that working data is syntactically correct, while informative data is semantically meaningful.
  
 **RQ18:**  
 The pipeline now produces “better” data because it no longer outputs just raw values, but also includes information about what those values mean. The data is more structured and provides context, making it easier to understand and use. As a result, both people and systems can interpret it correctly, leading to fewer errors and more useful outcomes.
