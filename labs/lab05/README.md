@@ -203,7 +203,7 @@ Interpretation notes from this run:
 - The JSONL file preserves both semantic context and runtime behavior metrics.
 
 
-### Entity Diagram
+## Entity Diagram
 
 ![alt text](image-4.png)
 
