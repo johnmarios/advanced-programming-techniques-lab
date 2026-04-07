@@ -219,7 +219,7 @@ While custom properties defined in our namespace include:
 `ck801:sensingPrinciple`.  
  
 **RQ3:**   
-The wastebin model includes properties such as  `capacity`, `material`, `dimensions`, `waste type`, `zone`, `status`. Properties like `fill level`, `maintenance history`, and `battery level` were excluded because they are either dynamic or require additional sensors. The selected properties focus on static or directly observable characteristics.
+The wastebin model includes properties such as  `capacity`, `material`, `dimensions`, `waste type`, `zone`, `status`. Properties like `fill level` and `maintenance history` were excluded because they are either dynamic or require additional sensors. The selected properties focus on static or directly observable characteristics.
  
 **RQ4:** 
 - Sensor: `sosa:isHostedBy` → wastebin, `ck801:deployedIn` → environment
@@ -239,7 +239,7 @@ Some properties, such as cooldown, GPIO pins, and sensing principle, are not cov
 Used `https://github.com/johnmarios/advanced-programming-techniques-lab/blob/main/docs/ontology.md#`. Persistent GitHub URL is resolvable; trailing `#` allows fragment-based term references.
  
 **RQ8:**  
-Before: `"event_time": "2026-04-10T14:32:01.123Z"` was ambiguous (sensor time? processing time?). After mapped to `sosa:resultTime`—standard W3C term meaning "observation result time." Any SOSA-aware tool now understands it automatically.
+Before: `"event_time": "2026-04-10T14:32:01.123Z"` was ambiguous: we don't know if it's sensor time or processing time. After mapped to `sosa:resultTime`—standard W3C term meaning "observation result time." Any SOSA-aware tool now understands it automatically.
  
 **RQ9:**   
 The `@context` maps property names to well-defined URIs and provides semantic meaning. Without it, JSON data may be valid but lacks interpretation. With @context, the data becomes self-describing and can be correctly understood by machines.
@@ -266,7 +266,7 @@ context: add `fill_level` → `pipeline:fillLevelPercent`.
 And finally in `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
  
 **RQ14:**  
-Missing: maintenance history (when was sensor last serviced?), battery level (when will sensor die?), asset IDs (for accounting), calibration dates (data quality), firmware version (for debugging).
+Missing: maintenance history (when was sensor last serviced?), battery level (when will sensor die?), firmware version (for debugging).
  
 **RQ15:**  
 SAREF4WASTEMANAGEMENT is purpose-built for waste systems (collection routes, rich measurements). Our model is simpler, more educational, extensible. SAREF includes `saref:accuracy`, `saref:uncertainty`; we omit statistical metadata.
