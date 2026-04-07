@@ -152,13 +152,15 @@ sudo python run_pipeline.py \
   --verbose
 ```
 
-Output screenshot 1:
+Output screenshots:
 
-![Pipeline output - part 1](assets/pipeline-output-1.png)
+![alt text](image.png)
 
-Output screenshot 2:
+![alt text](image-1.png)
 
-![Pipeline output - part 2](assets/pipeline-output-2.png)
+![alt text](image-2.png)
+
+
 
 ## What The JSON Output Shows
 
@@ -198,11 +200,7 @@ Interpretation notes from this run:
 - The JSONL file preserves both semantic context and runtime behavior metrics.
 
 
-![alt text](image.png)
 
-![alt text](image-1.png)
-
-![alt text](image-2.png)
 
 ![alt text](image-4.png)
 
