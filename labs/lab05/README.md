@@ -154,12 +154,15 @@ sudo python run_pipeline.py \
 
 Output screenshots:
 
-![alt text](image.png)
 
 ![alt text](image-1.png)
 
 ![alt text](image-2.png)
 
+
+JSON output:
+
+![alt text](image.png)
 
 
 ## What The JSON Output Shows
