@@ -203,7 +203,9 @@ Interpretation notes from this run:
 - The JSONL file preserves both semantic context and runtime behavior metrics.
 
 
-## Entity Diagram
+## Entity Diagram  
+
+The entity diagram provides an overview of the semantic model, highlighting how observations, sensors, wastebins, and environments are linked through standardized and custom relationships.
 
 ![alt text](image-4.png)
 
