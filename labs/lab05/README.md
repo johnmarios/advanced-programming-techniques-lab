@@ -275,7 +275,10 @@ Yes, but with some limitations. If both teams use the same JSON-LD context and o
 
  
 **RQ13:**  
-Add `models/distance-sensor.jsonld`. Update wastebin: add second `sosa:hosts` entry and `ck801:currentFillLevel`. Update context: add `fill_level` → `pipeline:fillLevelPercent`. Update `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
+First the model of the ultrasonic sensor `models/distance-sensor.jsonld` must be created. After that the current JSON-LD filesneed to be updated:  
+wastebin: add second `sosa:hosts` entry and `ck801:currentFillLevel`.   
+context: add `fill_level` → `pipeline:fillLevelPercent`.  
+And finally in `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
  
 **RQ14:**  
 Missing: maintenance history (when was sensor last serviced?), battery level (when will sensor die?), asset IDs (for accounting), calibration dates (data quality), firmware version (for debugging).
@@ -289,10 +292,11 @@ SAREF4WASTEMANAGEMENT is purpose-built for waste systems (collection routes, ric
 Raw Lab 03 JSONL sits at DATA level (raw facts, no context). JSON-LD version sits at INFORMATION level (contextualized with relationships and metadata). Semantic annotation + entity linking moved it up.
  
 **RQ17:**  
-Working data: structured so your code can parse it. Communicative data: self-describing—anyone with the context can understand it. Working data is local; communicative data is portable.
+Data that works focuses only on functionality, it is correctly structured so a system can read and process it without errors, but it may not clearly explain what it represents. In contrast, data that communicates information focuses on meaning. It provides context and clear semantics, allowing both machines and humans to understand what the data actually describes. The key difference is that working data is just usable, while informative data is meaningful.
  
 **RQ18:**  
-Old way: "Here's motion data. Read our code to understand." New way: "Here's motion data from sensor X in wastebin Y in location Z. The context tells you what everything means." Data now explains itself.
+The pipeline now produces “better” data because it no longer outputs just raw values, but also includes information about what those values mean. The data is more structured and provides context, making it easier to understand and use. As a result, both people and systems can interpret it correctly, leading to fewer errors and more useful outcomes.
+
  
 
 
