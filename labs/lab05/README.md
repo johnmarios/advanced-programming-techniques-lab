@@ -212,16 +212,31 @@ Interpretation notes from this run:
 
 
 # SECTION B - REPORT
-**RQ1**
+**RQ1:**  
 We used three vocabularies across our models:
 - SOSA/SSN (http://www.w3.org/ns/sosa/) — purpose-built for sensors, observations, and actuators. It has exact concepts like Sensor, Observation, ObservableProperty, and resultTime that map directly to our PIR sensor setup. Alternatives like SAREF are also suitable but less widely supported by open tools.
 - schema.org (https://schema.org/) — for general metadata: name, description, manufacturer, Place. It's the most widely understood vocabulary on the web, making our models more accessible.
 - BOT (https://w3id.org/bot#) — the Building Topology Ontology, designed specifically for describing spatial relationships between rooms, floors, and buildings. Used in environment.jsonld.
 - Custom pipeline: namespace — for pipeline-internal fields (seq, run_id, pipeline_latency_ms) that no standard vocabulary covers.
 
-**RQ2:** Standard: `@type` (sosa:Sensor), `name`, `description`, `sosa:isHostedBy`. Custom: `ck801:range`, `ck801:cooldown`, `ck801:pins`, `ck801:operatingTemperature`, `ck801:sensingPrinciple`.
+**RQ2:**  
+From the properties included in our sensor description, in standard vocabulairies belong the following:  
+`@type` (sosa:Sensor),
+`name`, 
+`description`,
+`sosa:isHostedBy`. 
+
+While the ones defined by us are : 
+`ck801:range`, 
+`ck801:cooldown`, 
+`ck801:pins`, 
+`ck801:operatingTemperature`, 
+`ck801:sensingPrinciple`.
  
-**RQ3:** Included: capacity, material, dimensions, waste type, zone, status. Excluded: fill level (no sensor yet), maintenance history, battery level. Kept to observable/static properties.
+**RQ3:**   
+Properties included in wastebin : `capacity`, `material`, `dimensions`, `waste type`, `zone`, `status`.  
+Excluded: `fill level` (no sensor yet), `maintenance history`, `battery level`.  
+The properties inclued were kept to observable/static properties.
  
 **RQ4:** 
 - Sensor: `sosa:isHostedBy` → wastebin, `ck801:deployedIn` → environment
@@ -232,23 +247,31 @@ We used three vocabularies across our models:
  
 ### Context & Namespace
  
-**RQ6:** `event_time` → `sosa:resultTime` (SOSA standard for observation time). `device_id` → `sosa:madeBySensor` (SOSA links observation to sensor). Custom fields like `pipeline_latency_ms` → `pipeline:latencyMs` (pipeline-internal metrics need custom terms).
+**RQ6:**  
+`event_time` → `sosa:resultTime` (SOSA standard for observation time). `device_id` → `sosa:madeBySensor` (SOSA links observation to sensor). Custom fields like `pipeline_latency_ms` → `pipeline:latencyMs` (pipeline-internal metrics need custom terms).
  
-**RQ7:** Used `https://github.com/johnmarios/advanced-programming-techniques-lab/blob/main/docs/ontology.md#`. Persistent GitHub URL is resolvable; trailing `#` allows fragment-based term references.
+**RQ7:**  
+Used `https://github.com/johnmarios/advanced-programming-techniques-lab/blob/main/docs/ontology.md#`. Persistent GitHub URL is resolvable; trailing `#` allows fragment-based term references.
  
-**RQ8:** Before: `"event_time": "2026-04-10T14:32:01.123Z"` was ambiguous (sensor time? processing time?). After mapped to `sosa:resultTime`—standard W3C term meaning "observation result time." Any SOSA-aware tool now understands it automatically.
+**RQ8:**  
+Before: `"event_time": "2026-04-10T14:32:01.123Z"` was ambiguous (sensor time? processing time?). After mapped to `sosa:resultTime`—standard W3C term meaning "observation result time." Any SOSA-aware tool now understands it automatically.
  
-**RQ9:** `@context` maps property names to URIs and declares types. Without it, JSON is valid but uninterpretable. With context, data is self-describing—a parser knows `"7.0"` is a decimal number, not a string.
+**RQ9:**   
+`@context` maps property names to URIs and declares types. Without it, JSON is valid but uninterpretable. With `@context`, data is self describing and parser knows `"7.0"` is a decimal number, not a string.
  
-**RQ10:** Used external reference: `"@context": "models/context.jsonld"`. Trade-off: smaller file size vs. requires file access. Alternative: inline every record (portable, large). Alternative: once at start (non-standard JSONL).
+**RQ10:**  
+Used external reference: `"@context": "models/context.jsonld"`. Trade-off: smaller file size vs. requires file access. Alternative: inline every record (portable, large). Alternative: once at start (non-standard JSONL).
  
 ### The Diagram
  
-**RQ11:** See Entity Diagram above. Shows 4 layers: Environment (location), Wastebin (container), Sensor (device), Observation (event). Each references others via `@id` URNs. Observation links to all three entities.
+**RQ11:** 
+See Entity Diagram above. Shows 4 layers: Environment (location), Wastebin (container), Sensor (device), Observation (event). Each references others via `@id` URNs. Observation links to all three entities.
  
 ### Interoperability & Extensibility
  
-**RQ12:** Yes, with caveats. Both teams' observations would have identical JSONL-LD structure using same context. Downstream app recognizes both as valid SOSA observations. But it cannot assume sensor-specific behaviors (range, accuracy)—must inspect sensor metadata via `@id` reference.
+**RQ12:**  
+Yes, but with some limitations. If both teams use the same JSON-LD context and ontology, the application can process their data in the same way, since the structure and meaning are consistent. However, it cannot assume sensor-specific details such as accuracy or range, so it may need to check additional metadata via the @id.
+
  
 **RQ13:** Add `models/distance-sensor.jsonld`. Update wastebin: add second `sosa:hosts` entry and `ck801:currentFillLevel`. Update context: add `fill_level` → `pipeline:fillLevelPercent`. Update `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
  
