@@ -21,8 +21,7 @@ Members:
   - Create a docker like it is shown on lab04.
 ## Create the model files 
 Using the instructions given on the lab's website we were able to write the JSON-LD documents in order to make the result data readable by everyone, just by following the links
-## Create the ontopology documentation 
-The Ontopoly auto-builds editing forms from your ontology. Define `Wastebin` properties once, get the right UI automatically. Like the JSON-LD `@context`.
+
 ## Update the Pipeline
 - Modify `run_pipeline.py` to include the @context reference and entity links in every output record.
 - Added entity normalization function (`normalize_entity_id()`) to ensure URN format
@@ -35,22 +34,11 @@ The Ontopoly auto-builds editing forms from your ontology. Define `Wastebin` pro
 
 ---
 
-## Data Model Overview
+## Entity Diagram  
 
-The PIR sensor deployment is described using a **domain model** that defines relationships between four key entities:
+The entity diagram provides an overview of the semantic model, highlighting how observations, sensors, wastebins, and environments are linked through standardized and custom relationships.
 
-```
-Entity → Relationships → Context
-
-PirSensor  ──deployedIn──→ Wastebin 
-   │                          │
-   ├──environment───→ Environment 
-   │
-   └──madeBySensor──→ Observation Records
-                            │
-                   ├──resultTime: timestamp
-                   └──contextualReferences: Wastebin, Environment
-```
+![alt text](image-4.png)
 
 ### Entities and Properties
 
@@ -203,11 +191,6 @@ Interpretation notes from this run:
 - The JSONL file preserves both semantic context and runtime behavior metrics.
 
 
-## Entity Diagram  
-
-The entity diagram provides an overview of the semantic model, highlighting how observations, sensors, wastebins, and environments are linked through standardized and custom relationships.
-
-![alt text](image-4.png)
 
   
 
