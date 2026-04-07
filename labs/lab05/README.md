@@ -243,7 +243,8 @@ The properties inclued were kept to observable/static properties.
 - Wastebin: `sosa:hosts` → sensor, `ck801:locatedIn` → environment  
 - Environment: `sosa:hosts` → sensor, `ck801:containsWastebins` → wastebin
  
-**RQ5:** Cooldown, GPIO pins, sensing principle had no standard terms. Created custom `ck801:` properties documented in `docs/ontology.md`.
+**RQ5:**   
+Properties like cooldown, GPIO pins, sensing principle had no standard terms, thus we were led to  create them : `ck801:` properties documented in `docs/ontology.md`.
  
 ### Context & Namespace
  
