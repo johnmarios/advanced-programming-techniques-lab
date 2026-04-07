@@ -2,7 +2,7 @@
 ## Team Information
 Members: 
 - Marios Ioannis Papadopoulos 1092834
-- Filippos Theologos 1092633
+- Filippos Neofytos Theologos 1092633
 - Xristina Tzouda 1097346
 ---
 # SECTION A - RUNBOOK 
@@ -20,7 +20,7 @@ Members:
   - Use a venv just like the previous labs.
   - Create a docker like it is shown on lab04.
 ## Create the model files 
-Using the instructions given on the lab's website we werw able to write the JSONLD documents in order to make the result data readable by everyone, just by following the links
+Using the instructions given on the lab's website we were able to write the JSON-LD documents in order to make the result data readable by everyone, just by following the links
 ## Create the ontopology documentation 
 The Ontopoly auto-builds editing forms from your ontology. Define `Wastebin` properties once, get the right UI automatically. Like the JSON-LD `@context`.
 ## Update the Pipeline
