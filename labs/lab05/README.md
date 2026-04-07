@@ -48,9 +48,8 @@ PirSensor (¶1) ──deployedIn──→ Wastebin (¶2)
    │
    └──madeBySensor──→ Observation Records
                             │
-                            ├──observedProperty: Motion
-                            ├──resultTime: timestamp
-                            └──contextualReferences: Wastebin, Environment
+                   ├──resultTime: timestamp
+                   └──contextualReferences: Wastebin, Environment
 ```
 
 ### Entities and Properties
@@ -86,12 +85,6 @@ PirSensor (¶1) ──deployedIn──→ Wastebin (¶2)
   - `traffic`: high (busy area)
   - `location`: Kypes classroom (23.7283°N, 37.9838°E)
 - **Relationships**: hosts pir-01, contains wastebin-01
-
-**4. Motion (ck801:Motion)**
-- **Type**: Observable Property
-- **Values**: `detected` | `not-detected`
-- **Observed By**: PirSensor
-- **Recorded In**: Each sosa:Observation
 
 ### Observation Records Structure
 
@@ -211,6 +204,7 @@ Interpretation notes from this run:
 
 ![alt text](image-2.png)
 
+![alt text](image-3.png)
 
   
 
@@ -223,7 +217,7 @@ We used three vocabularies across our models:
 - schema.org (https://schema.org/) — for general metadata: name, description, manufacturer, Place. It's the most widely understood vocabulary on the web, making our models more accessible.
 - BOT (https://w3id.org/bot#) — the Building Topology Ontology, designed specifically for describing spatial relationships between rooms, floors, and buildings. Used in environment.jsonld.
 - Custom pipeline: namespace — for pipeline-internal fields (seq, run_id, pipeline_latency_ms) that no standard vocabulary covers.
-RQ2:** Standard: `@type` (sosa:Sensor), `name`, `description`, `sosa:observes`, `sosa:isHostedBy`. Custom: `ck801:range`, `ck801:cooldown`, `ck801:pins`, `ck801:operatingTemperature`, `ck801:sensingPrinciple`.
+RQ2:** Standard: `@type` (sosa:Sensor), `name`, `description`, `sosa:isHostedBy`. Custom: `ck801:range`, `ck801:cooldown`, `ck801:pins`, `ck801:operatingTemperature`, `ck801:sensingPrinciple`.
  
 **RQ3:** Included: capacity, material, dimensions, waste type, zone, status. Excluded: fill level (no sensor yet), maintenance history, battery level. Kept to observable/static properties.
  
