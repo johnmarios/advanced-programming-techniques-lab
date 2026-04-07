@@ -42,9 +42,9 @@ The PIR sensor deployment is described using a **domain model** that defines rel
 ```
 Entity → Relationships → Context
 
-PirSensor (¶1) ──deployedIn──→ Wastebin (¶2)
-   │                                │
-   ├──environment───→ Environment (¶3)
+PirSensor  ──deployedIn──→ Wastebin 
+   │                          │
+   ├──environment───→ Environment 
    │
    └──madeBySensor──→ Observation Records
                             │
