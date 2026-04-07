@@ -220,18 +220,18 @@ We used three vocabularies across our models:
 - Custom pipeline: namespace — for pipeline-internal fields (seq, run_id, pipeline_latency_ms) that no standard vocabulary covers.
 
 **RQ2:**  
-From the properties included in our sensor description, in standard vocabulairies belong the following:  
-`@type` (sosa:Sensor),
-`name`, 
-`description`,
-`sosa:isHostedBy`. 
+From the properties included in our sensor description, in standard vocabulairies belong the following:    
+`@type` (sosa:Sensor),  
+`name`,   
+`description`,  
+`sosa:isHostedBy`.   
 
-While the ones defined by us are : 
-`ck801:range`, 
-`ck801:cooldown`, 
-`ck801:pins`, 
-`ck801:operatingTemperature`, 
-`ck801:sensingPrinciple`.
+While the ones defined by us are :  
+`ck801:range`,   
+`ck801:cooldown`,   
+`ck801:pins`,   
+`ck801:operatingTemperature`,   
+`ck801:sensingPrinciple`.  
  
 **RQ3:**   
 Properties included in wastebin : `capacity`, `material`, `dimensions`, `waste type`, `zone`, `status`.  
@@ -273,19 +273,25 @@ See Entity Diagram above. Shows 4 layers: Environment (location), Wastebin (cont
 Yes, but with some limitations. If both teams use the same JSON-LD context and ontology, the application can process their data in the same way, since the structure and meaning are consistent. However, it cannot assume sensor-specific details such as accuracy or range, so it may need to check additional metadata via the @id.
 
  
-**RQ13:** Add `models/distance-sensor.jsonld`. Update wastebin: add second `sosa:hosts` entry and `ck801:currentFillLevel`. Update context: add `fill_level` → `pipeline:fillLevelPercent`. Update `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
+**RQ13:**  
+Add `models/distance-sensor.jsonld`. Update wastebin: add second `sosa:hosts` entry and `ck801:currentFillLevel`. Update context: add `fill_level` → `pipeline:fillLevelPercent`. Update `docs/ontology.md`: document new term. Environment and PIR sensor unchanged.
  
-**RQ14:** Missing: maintenance history (when was sensor last serviced?), battery level (when will sensor die?), asset IDs (for accounting), calibration dates (data quality), firmware version (for debugging).
+**RQ14:**  
+Missing: maintenance history (when was sensor last serviced?), battery level (when will sensor die?), asset IDs (for accounting), calibration dates (data quality), firmware version (for debugging).
  
-**RQ15:** SAREF4WASTEMANAGEMENT is purpose-built for waste systems (collection routes, rich measurements). Our model is simpler, more educational, extensible. SAREF includes `saref:accuracy`, `saref:uncertainty`; we omit statistical metadata.
+**RQ15:**  
+SAREF4WASTEMANAGEMENT is purpose-built for waste systems (collection routes, rich measurements). Our model is simpler, more educational, extensible. SAREF includes `saref:accuracy`, `saref:uncertainty`; we omit statistical metadata.
  
 ### Reflection
  
-**RQ16:** Raw Lab 03 JSONL sits at DATA level (raw facts, no context). JSON-LD version sits at INFORMATION level (contextualized with relationships and metadata). Semantic annotation + entity linking moved it up.
+**RQ16:**  
+Raw Lab 03 JSONL sits at DATA level (raw facts, no context). JSON-LD version sits at INFORMATION level (contextualized with relationships and metadata). Semantic annotation + entity linking moved it up.
  
-**RQ17:** Working data: structured so your code can parse it. Communicative data: self-describing—anyone with the context can understand it. Working data is local; communicative data is portable.
+**RQ17:**  
+Working data: structured so your code can parse it. Communicative data: self-describing—anyone with the context can understand it. Working data is local; communicative data is portable.
  
-**RQ18:** Old way: "Here's motion data. Read our code to understand." New way: "Here's motion data from sensor X in wastebin Y in location Z. The context tells you what everything means." Data now explains itself.
+**RQ18:**  
+Old way: "Here's motion data. Read our code to understand." New way: "Here's motion data from sensor X in wastebin Y in location Z. The context tells you what everything means." Data now explains itself.
  
 
 
