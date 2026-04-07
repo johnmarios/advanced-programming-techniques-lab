@@ -264,7 +264,7 @@ Used external reference: `"@context": "models/context.jsonld"`. Trade-off: small
  
 ### The Diagram
  
-**RQ11:** 
+**RQ11:**   
 The diagram shows four layers: Environment (location), Wastebin (container), Sensor (device), and Observation (event). These entities are connected through semantic relationships such as sosa:madeBySensor, sosa:isHostedBy, and ck801:locatedIn. Each entity is identified using @id URNs, allowing them to reference each other. The Observation links to the Sensor, which is hosted by a Wastebin and deployed within an Environment, forming a connected data model.
 
  
