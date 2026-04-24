@@ -1,18 +1,17 @@
-from queue import Queue
 import argparse
 import json
-import queue
 import sys
 import time
 from datetime import datetime, timezone
 import uuid
 from pathlib import Path
 
-from pirlib import sampler
 from pirlib.interpreter import PirInterpreter
 from pirlib.sampler import PirSampler
 import threading
 
+from producer import Producer
+from consumer import Consumer
 
 
 def create_run_id() -> str:
@@ -36,35 +35,38 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument("--device-id", required=True)
 	parser.add_argument("--wastebin-id", default="urn:dev:team-06:wastebin-01")
 	parser.add_argument("--environment-id", default="urn:dev:team-06:environment-01")
+	parser.add_argument("--broker", default="localhost")
+	parser.add_argument("--port", type=int, default=1883)
+	parser.add_argument("--topic", default="pir")
+	parser.add_argument("--qos", type=int, default=0, choices=[0, 1, 2])
 	parser.add_argument("--pin", type=int, required=True)
 	parser.add_argument("--sample-interval", type=float, default=0.1)
 	parser.add_argument("--cooldown", type=float, default=0.0)
 	parser.add_argument("--min-high", type=float, default=0.0)
 	parser.add_argument("--duration", type=float, default=60.0)
 	parser.add_argument("--out", required=True)
-	parser.add_argument("--queue-size", type=int, default=10)
 	parser.add_argument("--consumer-delay", type=float, default=0.0)
 	parser.add_argument("--verbose", action="store_true")
 	
 	return parser.parse_args()
 
 def validate_args(args):
-    '''Validate the parsed command-line arguments and exit with an error message if any validation fails.'''
-    # exit code 2 for invalid command-line arguments, exit code 1 for runtime errors (e.g. file I/O errors)
-    if args.pin < 0:
-        raise ValueError("--pin must be >= 0")
-    if args.sample_interval <= 0:
-        raise ValueError("--sample-interval must be > 0")
-    if args.cooldown < 0:
-        raise ValueError("--cooldown must be >= 0")
-    if args.min_high < 0:
-        raise ValueError("--min-high must be >= 0")
-    if args.duration <= 0:
-        raise ValueError("--duration must be > 0")
-    if args.queue_size <= 0:
-        raise ValueError("--queue-size must be > 0")
-    if args.consumer_delay < 0:
-        raise ValueError("--consumer-delay must be >= 0")
+	'''Validate the parsed command-line arguments and exit with an error message if any validation fails.'''
+	# exit code 2 for invalid command-line arguments, exit code 1 for runtime errors (e.g. file I/O errors)
+	if args.pin < 0:
+		raise ValueError("--pin must be >= 0")
+	if args.sample_interval <= 0:
+		raise ValueError("--sample-interval must be > 0")
+	if args.cooldown < 0:
+		raise ValueError("--cooldown must be >= 0")
+	if args.min_high < 0:
+		raise ValueError("--min-high must be >= 0")
+	if args.duration <= 0:
+		raise ValueError("--duration must be > 0")
+	if args.port <= 0 or args.port > 65535:
+		raise ValueError("--port must be in range [1, 65535]")
+	if args.consumer_delay < 0:
+		raise ValueError("--consumer-delay must be >= 0")
     
 
 def append_jsonl_newline(path: Path) -> None:
@@ -111,9 +113,69 @@ def create_event(
 def setup():
 	args = parse_args()
 	validate_args(args)
-	event_q = Queue(maxsize=args.queue_size) # in-memory queue for events
-	metrics = {"produced": 0, "dropped": 0, "max_queue": 0} # simple metrics tracking
-	return args, event_q, metrics
+	metrics = {"produced": 0, "consumed": 0, "dropped": 0}
+	stop_flag = {"stop": False}
+	return args, metrics, stop_flag
+
+
+def main() -> int:
+	args, metrics, stop_flag = setup()
+
+	try:
+		sampler = PirSampler(args.pin)
+		interp = PirInterpreter(cooldown_s=args.cooldown, min_high_s=args.min_high)
+
+		producer = Producer(args=args, metrics=metrics, sampler=sampler, interpreter=interp, stop_flag=stop_flag)
+		consumer = Consumer(args=args, metrics=metrics, stop_flag=stop_flag)
+
+		producer_t = threading.Thread(target=producer.produce, daemon=True)
+		consumer_t = threading.Thread(target=consumer.consume, daemon=True)
+
+		if args.verbose:
+			print(
+				f"[pipeline] broker={args.broker}:{args.port} topic={args.topic} qos={args.qos} "
+				f"device={args.device_id} pin={args.pin} interval={args.sample_interval}s "
+				f"cooldown={args.cooldown}s min_high={args.min_high}s duration={args.duration}s out={args.out}",
+				flush=True,
+			)
+
+		consumer_t.start()
+		producer_t.start()
+
+		start_t = time.time()
+
+		try:
+			while (time.time() - start_t) < args.duration:
+				if args.verbose:
+					print(
+						f"[status] produced={metrics['produced']} "
+						f"consumed={metrics['consumed']} "
+						f"dropped={metrics['dropped']}",
+						flush=True,
+					)
+				time.sleep(1.0)
+		except KeyboardInterrupt:
+			print("\n[pipeline] Ctrl-C: stopping...", flush=True)
+		finally:
+			stop_flag["stop"] = True
+			producer_t.join()
+			consumer_t.join()
+
+	except Exception as exc:
+		print(f"[pipeline] runtime error: {exc}", file=sys.stderr)
+		return 1
+
+	print(
+		f"[pipeline] done. produced={metrics['produced']} "
+		f"consumed={metrics['consumed']} "
+		f"dropped={metrics['dropped']}",
+		flush=True,
+	)
+	return 0
+
+
+if __name__ == "__main__":
+	raise SystemExit(main())
 
 
 		
