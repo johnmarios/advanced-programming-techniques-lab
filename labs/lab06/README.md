@@ -3,8 +3,7 @@
 Members: 
 - Marios Ioannis Papadopoulos 1092834  
 - Filippos Neofytos Theologos 1092633  
-- Xristina Tzouda 1097346  
-
+- Xristina Tzouda 1097346
 
 ---
 # SECTION A - RUNBOOK 
@@ -33,17 +32,49 @@ systemctl status mosquitto
 ```
 This should give *Active : Active (running)* as a result.
 ## Part 2 — Explore MQTT from the terminal
-- Open 2 terminals (both connected to the rpi):
-  1. Start a subscriber : 
-     ``` mosquitto_sub -h localhost -t "test/hello"
-  2. In the second terminal publish th following message :
-     ``` mosquitto_pub -h localhost -t "test/hello" -m "world"
-Correct output: "world" appears on the subscriber's terminal
+1. Open 2 terminals (both connected to the rpi):
+  1. Start a subscriber :
+ ```
+ mosquitto_sub -h localhost -t "test/hello"
+```
+  3. In the second terminal publish th following message :
+```
+mosquitto_pub -h localhost -t "test/hello" -m "world"
+```
+Correct output: "world" appears on the subscriber's terminal.
 
+2. Topic hierarchy :
+   1. On the subscriber's terminal write :
+```
+mosquitto_sub -h localhost -t "smartbin/pir-01/motion"
+```
+  2. On the publisher's terminal type:
+```
+mosquitto_pub -h localhost -t "smartbin/pir-01/motion" -m '{"state": "detected"}'
+```
+By this, it is clear that  MQTT does not care about the format, it just delivers bytes.
 
+3. Wildcards
+   With the subscriber still running, try these in separate terminals. On the first:
+```
+# Subscribe to ALL topics under smartbin/pir-01/
+mosquitto_sub -h localhost -t "smartbin/pir-01/#"
+```
+On the second :
+```
+# Subscribe to motion events from ANY device
+mosquitto_sub -h localhost -t "smartbin/+/motion"
+```
+In another terminal, publish to different topics and see which subscribers receive what:
+```
+mosquitto_pub -h localhost -t "smartbin/pir-01/motion" -m "detected"
+mosquitto_pub -h localhost -t "smartbin/pir-01/status" -m "online"
+mosquitto_pub -h localhost -t "smartbin/pir-02/motion" -m "detected"
+mosquitto_pub -h localhost -t "smartbin/ultrasonic-01/fill" -m "72"
+```
+The results are given in the screenshots 
 
-
-
+   
 
 
 
