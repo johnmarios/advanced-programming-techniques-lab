@@ -42,8 +42,7 @@ This should give *Active : Active (running)* as a result.
 mosquitto_pub -h localhost -t "test/hello" -m "world"
 ```
 Correct output: "world" appears on the subscriber's terminal.
-
-2. Topic hierarchy :
+## Topic hierarchy :
    1. On the subscriber's terminal write :
 ```
 mosquitto_sub -h localhost -t "smartbin/pir-01/motion"
@@ -54,8 +53,8 @@ mosquitto_pub -h localhost -t "smartbin/pir-01/motion" -m '{"state": "detected"}
 ```
 By this, it is clear that  MQTT does not care about the format, it just delivers bytes.
 
-3. Wildcards
-   With the subscriber still running, try these in separate terminals. On the first:
+## Wildcards: 
+With the subscriber still running, try these in separate terminals. On the first:
 ```
 # Subscribe to ALL topics under smartbin/pir-01/
 mosquitto_sub -h localhost -t "smartbin/pir-01/#"
@@ -72,7 +71,87 @@ mosquitto_pub -h localhost -t "smartbin/pir-01/status" -m "online"
 mosquitto_pub -h localhost -t "smartbin/pir-02/motion" -m "detected"
 mosquitto_pub -h localhost -t "smartbin/ultrasonic-01/fill" -m "72"
 ```
-The results are given in the screenshots 
+## QoS levels
+- Publish different Quality of Service levels :
+```
+# QoS 0: at most once (fire and forget)
+mosquitto_pub -h localhost -t "test/qos" -m "qos0 message" -q 0
+
+# QoS 1: at least once (acknowledged)
+mosquitto_pub -h localhost -t "test/qos" -m "qos1 message" -q 1
+
+# QoS 2: exactly once (four-step handshake)
+mosquitto_pub -h localhost -t "test/qos" -m "qos2 message" -q 2
+```
+With a subscriber listening on test/qos, all three should arrive. 
+By testing these we decided to use QoS 1 for our project.
+## Retained messages
+1. Publish a retained message :
+```
+mosquitto_pub -h localhost -t "smartbin/pir-01/status" -m "online" -r
+```
+2. Start a new subscriber after the publish:
+```
+mosquitto_sub -h localhost -t "smartbin/pir-01/status"
+```
+The subscriber immediately receives themessage when it is online even though it was published before it connected. 
+## Part 3 — Split the pipeline into publisher and subscriber
+# Install the Python MQTT library
+- Add paho-mqtt to the `requirments.txt`.
+- Then install it by running:
+```
+pip install paho-mqtt
+```
+# Topic stracture 
+
+
+
+
+
+
+---
+# SECTION B - REPORT
+## RQ1
+The broker is a middleman that receives published messages and forwards them to subscribers. Without it, the producer would need to know the consumer's address, both would need to run simultaneously, and adding a second consumer would require changing the producer. The broker removes all these dependencies.
+## RQ2
+`smartbin/<bin-id>/<sensor-id>/events`. The hierarchy goes location → device → type, enabling wildcards like `smartbin/bin-01/#` which gives us all data from one bin or `smartbin/+/pir-01/events`which means pir-01 across all bins, new sensors and bins can be added without changing existing subscribers.
+## RQ3
+- QoS 0: At most once. The broker delivers the message once with no acknowledgement. Messages can be lost if the network drops.
+- QoS 1: At least once. The broker acknowledges receipt of the message. If the acknowledgment is lost, the message is retransmitted, which may result in duplicate messages, but delivery is guaranteed at least once.
+- QoS 2 : Exactly once. A four-step handshake ensures that the message is delivered exactly once, without duplicates. It is the safest level but also the slowest due to the additional overhead.
+
+We used QoS 1 for motion events because it guarantees delivery while keeping latency and overhead low. Although duplicates may occur, they can be handled by the application, making it a good balance between reliability and performance.
+## RQ4
+A retained message is stored by the broker and delivered immediately to any new subscriber. In our project it can be used so that the user knows the remaining capacity of the bin. Even though the user might be offline the message won't be lost.  
+## RQ5
+`smartbin/+/motion` received messages on `smartbin/pir-01/motion` and `smartbin/pir-02/motion`, but not `smartbin/pir-01/status` or `smartbin/ultrasonic-01/fill`. The `+` wildcard matches exactly one level, so only topics with that exact three-level structure and motion at the end matched.
+## RQ6
+`#` received everything flowing through the broker. It's useful for debugging because you see all traffic without knowing topic names.
+## RQ7
+No. Without the retain flag, the broker discards messages if no subscriber is currently connected. MQTT doesn't queue messages for future subscribers by default.
+## RQ8
+In the threaded version, producer and consumer share a Python Queue in the same process and must start/stop together. In the MQTT version they are separate processes communicating through the broker, can run independently, on different machines, and multiple consumers are supported with no code changes.
+## RQ9
+In the threaded version, a full queue blocked or dropped messages directly in the producer. In the MQTT version, the producer is unaffected, it publishes to the broker regardless.  If the consumer is offline with QoS 1 and a persistent session the broker queues them until the consumer reconnects.
+## RQ10
+Polling `queue.get(timeout=0.5)` has the consumer actively looping and asking "something in the bin yet ?" every 0.5s. The callback pattern (on_message) is passive which means the consumer registers a function and paho-mqtt calls it automatically when a message arrives. 
+## RQ11
+## RQ12
+## RQ13
+Yes, both received every message because the broker fans out to all matching subscribers. This matters because you can add consumer independently without modifying the producer or any other consumer.
+## RQ14
+Yes. You'd need to configure Mosquitto to listen on all interfaces not just localhost, and point the consumer's `--broker` argument to the rpi's IP address.
+## RQ15
+Decoupling means producer and consumer share no direct connection only a topic name and message format.
+## RQ16
+If the broker crashes, the pipeline stops entirely and in-flight messages are lost.
+
+
+
+
+
+
+
 
 ## Part 3 - Independent multi-terminal architecture
 
