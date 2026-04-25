@@ -74,6 +74,52 @@ mosquitto_pub -h localhost -t "smartbin/ultrasonic-01/fill" -m "72"
 ```
 The results are given in the screenshots 
 
+## Part 3 - Independent multi-terminal architecture
+
+In this architecture each service runs as a separate process in a separate terminal.
+Do not use `run_pipeline.py` for normal operation.
+
+### Consumer roles
+
+- Consumer 1 (Storage/Logger): `consumer.py`
+  - Subscribes to MQTT and writes JSON-LD events to a `.jsonl` file.
+  - Keeps history only.
+
+- Consumer 2 (Alert/Logic): `alert_consumer.py`
+  - Subscribes to the same MQTT topic.
+  - Counts openings per bin per day.
+  - Prints warning when a threshold is reached (default: 50).
+
+- Consumer 3 (Dashboard/UI): `dashboard_consumer.py`
+  - Subscribes to the same MQTT topic.
+  - Prints realtime events to the terminal.
+
+### Run in 4 terminals
+
+From `labs/lab06`, open 4 terminals and run:
+
+Terminal 1 - Producer
+```
+python producer.py --device-id urn:dev:team-06:sensor-01 --pin 4 --broker localhost --port 1883 --topic pir --qos 0 --duration 3600 --verbose
+```
+
+Terminal 2 - Storage consumer
+```
+python consumer.py --out assets/events.jsonl --broker localhost --port 1883 --topic pir --qos 0 --duration 3600 --verbose
+```
+
+Terminal 3 - Alert consumer
+```
+python alert_consumer.py --threshold 50 --broker localhost --port 1883 --topic pir --qos 0 --duration 3600 --verbose
+```
+
+Terminal 4 - Dashboard consumer
+```
+python dashboard_consumer.py --broker localhost --port 1883 --topic pir --qos 0 --duration 3600
+```
+
+All terminals are independent and can be started/stopped autonomously.
+
    
 
 
