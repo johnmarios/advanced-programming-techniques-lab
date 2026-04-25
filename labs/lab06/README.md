@@ -94,7 +94,7 @@ mosquitto_pub -h localhost -t "smartbin/pir-01/status" -m "online" -r
 ```
 mosquitto_sub -h localhost -t "smartbin/pir-01/status"
 ```
-The subscriber immediately receives online even though the message was published before it connected. 
+The subscriber immediately receives themessage when it is online even though it was published before it connected. 
 ## Part 3 — Split the pipeline into publisher and subscriber
 # Install the Python MQTT library
 - Add paho-mqtt to the `requirments.txt`.
@@ -120,7 +120,7 @@ The broker is a middleman that receives published messages and forwards them to 
 - QoS 1: At least once. The broker acknowledges receipt of the message. If the acknowledgment is lost, the message is retransmitted, which may result in duplicate messages, but delivery is guaranteed at least once.
 - QoS 2 : Exactly once. A four-step handshake ensures that the message is delivered exactly once, without duplicates. It is the safest level but also the slowest due to the additional overhead.
 
-I used QoS 1, for motion events because it guarantees delivery while keeping latency and overhead low. Although duplicates may occur, they can be handled by the application, making it a good balance between reliability and performance.
+We used QoS 1 for motion events because it guarantees delivery while keeping latency and overhead low. Although duplicates may occur, they can be handled by the application, making it a good balance between reliability and performance.
 ## RQ4
 A retained message is stored by the broker and delivered immediately to any new subscriber. In our project it can be used so that the user knows the remaining capacity of the bin. Even though the user might be offline the message won't be lost.  
 ## RQ5
