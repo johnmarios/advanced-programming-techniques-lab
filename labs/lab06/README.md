@@ -84,7 +84,7 @@ mosquitto_pub -h localhost -t "test/qos" -m "qos1 message" -q 1
 mosquitto_pub -h localhost -t "test/qos" -m "qos2 message" -q 2
 ```
 With a subscriber listening on test/qos, all three should arrive. 
-By testing these we decided to use QoS 0 for our project.
+By testing these we decided to use QoS 1 for our project.
 ## Retained messages
 1. Publish a retained message :
 ```
