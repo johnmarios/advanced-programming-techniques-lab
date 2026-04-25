@@ -68,7 +68,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="PIR producer")
 
     parser.add_argument("--context", default="models/context.jsonld")
-    parser.add_argument("--device-id", default="pir motion-sensor-01")
+    parser.add_argument("--device-id", default="pir-motion-sensor-01")
     parser.add_argument("--wastebin-id", default="urn:dev:team-06:wastebin-01")
     parser.add_argument("--environment-id", default="urn:dev:team-06:environment-01")
     parser.add_argument("--broker", default="localhost")
