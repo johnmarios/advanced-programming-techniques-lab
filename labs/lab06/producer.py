@@ -1,5 +1,6 @@
 import argparse
 import json
+import random
 import sys
 import time
 from datetime import datetime, timezone
@@ -74,7 +75,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", type=int, default=1883)
     parser.add_argument("--topic", default="pir")
     parser.add_argument("--qos", type=int, default=0, choices=[0, 1, 2])
-    parser.add_argument("--pin", type=int, required=True) # GPIO pin number for the PIR sensor (required)
+    parser.add_argument("--pin", type=int)
+    parser.add_argument("--simulate", action="store_true")
+    parser.add_argument("--simulate-prob", type=float, default=0.1)
     parser.add_argument("--sample-interval", type=float, default=0.1) # Time interval between sensor readings in seconds (default: 0.1s)
     parser.add_argument("--cooldown", type=float, default=5.0) # Cooldown period in seconds after motion is detected during which no new motion events will be generated (default: 5s)
     parser.add_argument("--min-high", type=float, default=0.0) # Minimum duration in seconds that the sensor signal must be high to consider it a valid motion event (default: 0s, i.e. any high signal is valid)
@@ -84,7 +87,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_args(args: argparse.Namespace) -> None:
-    if args.pin < 0:
+    if not args.simulate and args.pin is None:
+        raise ValueError("--pin is required unless --simulate is enabled")
+    if args.pin is not None and args.pin < 0:
         raise ValueError("--pin must be >= 0")
     if args.sample_interval <= 0:
         raise ValueError("--sample-interval must be > 0")
@@ -96,6 +101,16 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--duration must be > 0")
     if args.port <= 0 or args.port > 65535:
         raise ValueError("--port must be in range [1, 65535]")
+    if args.simulate_prob < 0 or args.simulate_prob > 1:
+        raise ValueError("--simulate-prob must be in range [0, 1]")
+
+
+class SimulatedPirSampler:
+    def __init__(self, probability: float = 0.1):
+        self.probability = probability
+
+    def read(self) -> bool:
+        return random.random() < self.probability
 
 
 class Producer:
@@ -193,14 +208,30 @@ def main() -> int:
     stop_flag = {"stop": False}
 
     try:
-        sampler = PirSampler(args.pin)
+        if args.simulate:
+            sampler = SimulatedPirSampler(args.simulate_prob)
+        else:
+            try:
+                sampler = PirSampler(args.pin)
+            except Exception as exc:
+                print(f"[producer] GPIO init error: {exc}", file=sys.stderr)
+                print(
+                    "[producer] If you are on Raspberry Pi, install GPIO backend and enable GPIO access:",
+                    file=sys.stderr,
+                )
+                print("[producer] sudo apt install -y python3-lgpio python3-gpiozero", file=sys.stderr)
+                print("[producer] sudo usermod -aG gpio $USER", file=sys.stderr)
+                print("[producer] Then logout/login and try again.", file=sys.stderr)
+                print("[producer] For testing without hardware, use --simulate.", file=sys.stderr)
+                return 1
+
         interp = PirInterpreter(cooldown_s=args.cooldown, min_high_s=args.min_high)
         producer = Producer(args=args, metrics=metrics, sampler=sampler, interpreter=interp, stop_flag=stop_flag)
 
         if args.verbose:
             print(
                 f"[producer] broker={args.broker}:{args.port} topic={args.topic} qos={args.qos} "
-                f"device={args.device_id} pin={args.pin} interval={args.sample_interval}s "
+                f"device={args.device_id} pin={args.pin if args.pin is not None else 'simulated'} interval={args.sample_interval}s "
                 f"cooldown={args.cooldown}s min_high={args.min_high}s duration={args.duration}s",
                 flush=True,
             )
