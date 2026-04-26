@@ -20,11 +20,6 @@ services:
     devices:
       - "/dev/gpiomem:/dev/gpiomem"
       - "/dev/gpiochip0:/dev/gpiochip0"
-      - "/dev/gpiochip4:/dev/gpiochip4"
-      - "/dev/gpiochip10:/dev/gpiochip10"
-      - "/dev/gpiochip11:/dev/gpiochip11"
-      - "/dev/gpiochip12:/dev/gpiochip12"
-      - "/dev/gpiochip13:/dev/gpiochip13"
 
     depends_on:
       - broker
@@ -54,8 +49,8 @@ services:
     depends_on:
       - broker
 
-    volumes:
-      - ./output:/app/output
+  volumes:
+  - ./output:/lab6/output
 
     command: >
       python consumer.py
