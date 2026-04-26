@@ -33,7 +33,7 @@ def validate_args(args: argparse.Namespace) -> None:
 		raise ValueError("--port must be in range [1, 65535]")
 	if args.consumer_delay < 0:
 		raise ValueError("--consumer-delay must be >= 0")
-	if args.dedup_cache_size < 1:
+	if args.cache_size < 1:
 		raise ValueError("--cache-size must be >= 1")
 
 
