@@ -140,13 +140,9 @@ python producer.py --broker localhost --topic smartbin/bin-01/pir-01/events --pi
 ```
 - Output example, producer online - consumer offline
 ```
-(venv) iotlab_upat_6@iotlab-Upat-6:~/team/advanced-programming-techniques-lab/labs/lab06 $ python consumer.py   --broker localhost   --port 1883   --topic "smartbin/bin-01/pir-01/events"   --qos 1   --out motion_events.jsonl \
->
-/home/iotlab_upat_6/team/advanced-programming-techniques-lab/labs/lab06/consumer.py:50: DeprecationWarning: Callback API version 1 is deprecated, update to latest version
-  self.client = mqtt.Client(client_id=client_id)
-[consumer-storage] done. consumed=0
+
 ```
-None of the messages that were produced was shown when the consumer came back online
+
 
 - Output example: Run the consumer with a wildcard topic
 ```
@@ -193,6 +189,7 @@ Polling `queue.get(timeout=0.5)` has the consumer doing loops every 0.5 seconds,
 ```
 The JSON structure is identical to previous labs.
 ## RQ12
+With a persistent session (clean_session=False) and QoS 1, the broker queues the messages and delivers the time the consumer reconnects.
 ## RQ13
 Yes, both received every message because the broker fans out to all matching subscribers. This matters because you can add consumer independently without modifying the producer or any other consumer.
 ## RQ14
