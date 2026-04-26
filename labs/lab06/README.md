@@ -139,10 +139,8 @@ python producer.py --broker localhost --topic smartbin/bin-01/pir-01/events --pi
 {"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:47.014Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 8, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
 ```
 - Output example, producer online - consumer offline
-```
-
-```
-
+![alt text](con_off.png)
+![alt text](con_off_1.png)
 
 - Output example: Run the consumer with a wildcard topic
 ```
