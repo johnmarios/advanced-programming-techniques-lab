@@ -103,8 +103,10 @@ The subscriber immediately receives themessage when it is online even though it 
 pip install paho-mqtt
 ```
 # Topic stracture 
-
-
+The topic stracture we used is :
+```
+environments/environment-01/wastebins/wastebin-01/sensors/pir-01/events
+```
 
 # Run the `producer.py` and `consumer.py`
 - Using the pseudocode given, we wrote the necessary code.
@@ -142,14 +144,13 @@ python producer.py --broker localhost --topic smartbin/bin-01/pir-01/events --pi
 ![alt text](con_off.png)
 ![alt text](con_off_1.png)
 
-- Output example: Run the consumer with a wildcard topic
-```
-
-```
+- Output example : Run the consumer with a wildcard topic
 
 
 
 
+# Part 4 — Containerize with Docker Compose 
+Like it was shown in lab04
 
 ---
 # SECTION B - REPORT
