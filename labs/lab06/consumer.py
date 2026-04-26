@@ -53,8 +53,8 @@ class Consumer:
 		client_id = f"C{Consumer.static_counter}"
 		Consumer.static_counter += 1
 		self.client = mqtt.Client(client_id=client_id)
-		self.client.on_connect = self._on_connect
-		self.client.on_message = self._on_message
+		self.client.on_connect = self.on_connect
+		self.client.on_message = self.on_message
 
 	def get_record_key(self, record: dict) -> str:
 		''' generates a unique key string for a given event record dictionary, which is used for duplicate detection; '''
