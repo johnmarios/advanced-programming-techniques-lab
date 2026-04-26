@@ -145,8 +145,12 @@ python producer.py --broker localhost --topic smartbin/bin-01/pir-01/events --pi
 ![alt text](con_off_1.png)
 
 - Output example : Run the consumer with a wildcard topic
-
-
+1. Producer :
+![alt text](pub_wild.png)
+2. Consumer :
+![alt text](con_wild.png)
+3. Event logger :
+![alt text](ev_wild.png)  
 
 
 # Part 4 — Containerize with Docker Compose 
