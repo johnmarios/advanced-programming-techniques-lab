@@ -81,7 +81,7 @@ class Consumer:
 
 		return False
 
-	def on_connect(self, client, reason_code, properties=None):
+	def on_connect(self, client, userdata, flags, reason_code, properties=None):
 		if reason_code == 0: # successful connection
 			client.subscribe(self.args.topic, qos=self.args.qos)
 			if self.args.verbose:
@@ -89,7 +89,7 @@ class Consumer:
 		else:
 			print(f"[consumer] connect failed rc={reason_code}", file=sys.stderr, flush=True)
 
-	def on_message(self, msg):
+	def on_message(self, client, userdata, msg):
 		try:
 			# decode the MQTT message payload from bytes to string and parse it as JSON to get the event record dictionary
 			record = json.loads(msg.payload.decode("utf-8"))
