@@ -12,6 +12,15 @@ from pirlib.interpreter import PirInterpreter
 from pirlib.sampler import PirSampler
 
 
+def str_to_bool(value: str) -> bool:
+    value = value.strip().lower()
+    if value in ("1", "true", "t", "yes", "y", "on"):
+        return True
+    if value in ("0", "false", "f", "no", "n", "off"):
+        return False
+    raise argparse.ArgumentTypeError("expected boolean value (true/false)")
+
+
 def create_run_id() -> str:
     '''generates a unique run ID using UUID4'''
     return str(uuid.uuid4())
@@ -75,6 +84,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", type=int, default=1883)
     parser.add_argument("--topic", default="pir")
     parser.add_argument("--qos", type=int, default=1, choices=[0, 1, 2])
+    parser.add_argument("--clean-session", type=str_to_bool, default=False)
     parser.add_argument("--pin", type=int)
     parser.add_argument("--simulate", action="store_true")
     parser.add_argument("--simulate-prob", type=float, default=0.1)
@@ -131,7 +141,7 @@ class Producer:
 
         client_id = f"P{Producer.static_counter}"
         Producer.static_counter += 1
-        self.client = mqtt.Client(client_id=client_id)
+        self.client = mqtt.Client(client_id=client_id, clean_session=self.args.clean_session)
 
     def produce(self):
         try:
@@ -168,7 +178,7 @@ class Producer:
                         motion_state=state,
                         seq=self.seq,
                         run_id=self.run_id,
-                        context_iri=self.args.context,
+                        context_iri=self.args.context
                     )
 
                     payload = json.dumps(record) # Convert the event record dictionary to a JSON string for MQTT payload

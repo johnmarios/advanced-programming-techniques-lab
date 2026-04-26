@@ -3,6 +3,7 @@ import json
 import sys
 import time
 from collections import deque
+from datetime import datetime, timezone
 from pathlib import Path
 
 import paho.mqtt.client as mqtt
@@ -12,12 +13,22 @@ def append_jsonl_newline(path: Path) -> None:
 	with path.open("a", encoding="utf-8") as f:
 		f.write("\n")
 
+
+def str_to_bool(value: str) -> bool:
+	value = value.strip().lower()
+	if value in ("1", "true", "t", "yes", "y", "on"):
+		return True
+	if value in ("0", "false", "f", "no", "n", "off"):
+		return False
+	raise argparse.ArgumentTypeError("expected boolean value (true/false)")
+
 def parse_args() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(description="Storage/Logger consumer")
 	parser.add_argument("--broker", default="localhost") # MQTT broker address (default: localhost)
 	parser.add_argument("--port", type=int, default=1883)
 	parser.add_argument("--topic", default="pir")
 	parser.add_argument("--qos", type=int, default=1, choices=[0, 1, 2])
+	parser.add_argument("--clean-session", type=str_to_bool, default=False)
 	parser.add_argument("--out", required=True)
 	parser.add_argument("--cache-size", type=int, default=100)
 	parser.add_argument("--consumer-delay", type=float, default=0.0) # Delay between processing messages (seconds)
@@ -52,7 +63,7 @@ class Consumer:
 
 		client_id = f"C{Consumer.static_counter}"
 		Consumer.static_counter += 1
-		self.client = mqtt.Client(client_id=client_id)
+		self.client = mqtt.Client(client_id=client_id, clean_session=self.args.clean_session)
 		self.client.on_connect = self.on_connect
 		self.client.on_message = self.on_message
 
@@ -81,6 +92,15 @@ class Consumer:
 
 		return False
 
+	def parse_event_time_to_epoch(self, event_time: str) -> float:
+		if not isinstance(event_time, str) or not event_time:
+			raise ValueError("event_time is missing or not a string")
+
+		parsed = datetime.fromisoformat(event_time.replace("Z", "+00:00"))
+		if parsed.tzinfo is None:
+			parsed = parsed.replace(tzinfo=timezone.utc)
+		return parsed.timestamp()
+
 	def on_connect(self, client, userdata, flags, reason_code, properties=None):
 		if reason_code == 0: # successful connection
 			client.subscribe(self.args.topic, qos=self.args.qos)
@@ -103,6 +123,21 @@ class Consumer:
 						flush=True,
 					)
 				return
+			
+			# handle event latency
+			event_time = record.get("event_time")
+        
+			try:
+				received_ts = time.time()
+				event_ts = self.parse_event_time_to_epoch(event_time)
+				record["latency_seconds"] = received_ts - event_ts
+			except Exception as exc:
+				record["latency_seconds"] = None
+				if self.args.verbose:
+					print(f"[consumer] invalid event_time format: {event_time} ({exc})", file=sys.stderr, flush=True)
+	
+
+
 			# writes the event record as a JSON line to the output file and flushes it to ensure it's written to disk
 			self.out_file.write(json.dumps(record) + "\n")
 			self.out_file.flush()
