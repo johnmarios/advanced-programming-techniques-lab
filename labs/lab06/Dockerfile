@@ -3,7 +3,8 @@ FROM python:3.11-slim
 
 # buffering
 ENV PYTHONUNBUFFERED=1
-
+# Set environment variable for GPIO access
+ENV GPIOZERO_PIN_FACTORY=lgpio
 # Set the working directory inside the container
 WORKDIR /lab6
 
@@ -11,6 +12,9 @@ WORKDIR /lab6
 # Copy requirements file and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Install lgpio library for GPIO access
+RUN apt-get update && apt-get install -y python3-lgpio \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy the library folder
 COPY pirlib/ pirlib/
