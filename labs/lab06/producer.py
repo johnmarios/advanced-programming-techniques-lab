@@ -214,15 +214,7 @@ def main() -> int:
             try:
                 sampler = PirSampler(args.pin)
             except Exception as exc:
-                print(f"[producer] GPIO init error: {exc}", file=sys.stderr)
-                print(
-                    "[producer] If you are on Raspberry Pi, install GPIO backend and enable GPIO access:",
-                    file=sys.stderr,
-                )
-                print("[producer] sudo apt install -y python3-lgpio python3-gpiozero", file=sys.stderr)
-                print("[producer] sudo usermod -aG gpio $USER", file=sys.stderr)
-                print("[producer] Then logout/login and try again.", file=sys.stderr)
-                print("[producer] For testing without hardware, use --simulate.", file=sys.stderr)
+                print(f"[producer] sensor initialization error: {exc}", file=sys.stderr)
                 return 1
 
         interp = PirInterpreter(cooldown_s=args.cooldown, min_high_s=args.min_high)
