@@ -106,7 +106,38 @@ pip install paho-mqtt
 
 
 
-
+# Run the `producer.py` and `consumer.py`
+- Using the pseudocode given, we wrote the necessary code.
+- Connect to the rpi using the instructions given on lab01 and made sure we have enabled the `venv`.
+- On one terminal, run the consumer:
+```
+python consumer.py --broker localhost --topic "smartbin/bin-01/pir-01/events" --out output/events.jsonl --verbose
+```
+- On another terminal run the producer:
+```
+python producer.py --broker localhost --topic smartbin/bin-01/pir-01/events --pin 17 --verbose
+```
+- Output example, both consumer and producer are online:
+```
+[producer] broker=localhost:1883 topic=smartbin/bin-01/pir-01/events qos=0 device=pir-motion-sensor-01 pin=17 interval=0.1s cooldown=5.0s min_high=0.0s duration=60.0s
+[producer] published seq=1 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:20:50.073Z
+[producer] published seq=2 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:20:58.178Z
+[producer] published seq=3 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:03.383Z
+[producer] published seq=4 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:22.096Z
+[producer] published seq=5 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:27.800Z
+[producer] published seq=6 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:35.005Z
+[producer] published seq=7 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:42.010Z
+[producer] published seq=8 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:47.014Z
+[producer] done. produced=8 dropped=0
+```
+- Event logger(JSONL)
+```
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:22.096Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 4, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:27.800Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 5, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:35.005Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 6, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:42.010Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 7, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:47.014Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 8, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+```
 
 
 ---
@@ -122,7 +153,7 @@ The broker is a middleman that receives published messages and forwards them to 
 
 We used QoS 1 for motion events because it guarantees delivery while keeping latency and overhead low. Although duplicates may occur, they can be handled by the application, making it a good balance between reliability and performance.
 ## RQ4
-A retained message is stored by the broker and delivered immediately to any new subscriber. In our project it can be used so that the user knows the remaining capacity of the bin. Even though the user might be offline the message won't be lost.  
+A retained message is stored by the broker and delivered immediately to any new online subscriber. In our project it can be used so that the user knows the remaining capacity of the bin. Even though the subscriber might be offline the message won't be lost.  
 ## RQ5
 `smartbin/+/motion` received messages on `smartbin/pir-01/motion` and `smartbin/pir-02/motion`, but not `smartbin/pir-01/status` or `smartbin/ultrasonic-01/fill`. The `+` wildcard matches exactly one level, so only topics with that exact three-level structure and motion at the end matched.
 ## RQ6
@@ -132,15 +163,15 @@ No. Without the retain flag, the broker discards messages if no subscriber is cu
 ## RQ8
 In the threaded version, producer and consumer share a Python Queue in the same process and must start/stop together. In the MQTT version they are separate processes communicating through the broker, can run independently, on different machines, and multiple consumers are supported with no code changes.
 ## RQ9
-In the threaded version, a full queue blocked or dropped messages directly in the producer. In the MQTT version, the producer is unaffected, it publishes to the broker regardless.  If the consumer is offline with QoS 1 and a persistent session the broker queues them until the consumer reconnects.
+In the threaded version, a full queue blocked or dropped messages directly in the producer. In the MQTT version, the producer is unaffected, it publishes to the broker regardless.  If the consumer is offline , with QoS 1,  by default all messages will be lost.
 ## RQ10
-Polling `queue.get(timeout=0.5)` has the consumer actively looping and asking "something in the bin yet ?" every 0.5s. The callback pattern (on_message) is passive which means the consumer registers a function and paho-mqtt calls it automatically when a message arrives. 
+Polling `queue.get(timeout=0.5)` has the consumer doing loops every 0.5 seconds, whether there was motion detectd or not. The callback pattern (on_message) is passive which means the consumer registers a function and paho-mqtt calls it automatically when a message arrives. 
 ## RQ11
 ## RQ12
 ## RQ13
 Yes, both received every message because the broker fans out to all matching subscribers. This matters because you can add consumer independently without modifying the producer or any other consumer.
 ## RQ14
-Yes. You'd need to configure Mosquitto to listen on all interfaces not just localhost, and point the consumer's `--broker` argument to the rpi's IP address.
+Yes. You'd need to make some changes so that the Mosquitto can connect to all interfaces not just localhost, and point the consumer's `--broker` argument to the rpi's IP address.
 ## RQ15
 Decoupling means producer and consumer share no direct connection only a topic name and message format.
 ## RQ16
