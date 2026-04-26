@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+
+  broker:
+    image: eclipse-mosquitto
+    container_name: mqtt-broker
+    ports:
+      - "1883:1883"
+    restart: unless-stopped
+
+  producer:
+    build: .
+    container_name: mqtt-producer
+    depends_on:
+      - broker
+    command: >
+      python producer.py
+      --device-id pir-docker-01
+      --pin 17
+      --broker broker
+      --topic smartbin/team06/pir
+      --qos 1
+      --sample-interval 0.1
+      --cooldown 5
+      --duration 60
+      --verbose
+    restart: unless-stopped
+
+  consumer:
+    build: .
+    container_name: mqtt-consumer
+    depends_on:
+      - broker
+    command: >
+      python consumer.py
+      --broker broker
+      --topic smartbin/team06/pir
+      --clean-session False
+      --qos 1
+      --out /app/output/events.jsonl
+      --verbose
+    restart: unless-stopped
