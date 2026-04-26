@@ -74,7 +74,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--broker", default="localhost")
     parser.add_argument("--port", type=int, default=1883)
     parser.add_argument("--topic", default="pir")
-    parser.add_argument("--qos", type=int, default=0, choices=[0, 1, 2])
+    parser.add_argument("--qos", type=int, default=1, choices=[0, 1, 2])
     parser.add_argument("--pin", type=int)
     parser.add_argument("--simulate", action="store_true")
     parser.add_argument("--simulate-prob", type=float, default=0.1)
