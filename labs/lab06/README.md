@@ -111,7 +111,7 @@ pip install paho-mqtt
 - Connect to the rpi using the instructions given on lab01 and made sure we have enabled the `venv`.
 - On one terminal, run the consumer:
 ```
-python consumer.py --broker localhost --topic "smartbin/bin-01/pir-01/events" --out output/events.jsonl --verbose
+python consumer.py --broker localhost --topic "smartbin/bin-01/pir-01/events" --out events.jsonl --verbose
 ```
 - On another terminal run the producer:
 ```
@@ -120,14 +120,14 @@ python producer.py --broker localhost --topic smartbin/bin-01/pir-01/events --pi
 - Output example, both consumer and producer are online:
 ```
 [producer] broker=localhost:1883 topic=smartbin/bin-01/pir-01/events qos=0 device=pir-motion-sensor-01 pin=17 interval=0.1s cooldown=5.0s min_high=0.0s duration=60.0s
-[producer] published seq=1 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:20:50.073Z
-[producer] published seq=2 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:20:58.178Z
-[producer] published seq=3 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:03.383Z
-[producer] published seq=4 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:22.096Z
-[producer] published seq=5 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:27.800Z
-[producer] published seq=6 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:35.005Z
-[producer] published seq=7 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:42.010Z
-[producer] published seq=8 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-25T17:21:47.014Z
+[producer] published seq=1 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:24:56.982Z
+[producer] published seq=2 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:25:03.887Z
+[producer] published seq=3 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:25:11.192Z
+[producer] published seq=4 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:25:16.195Z
+[producer] published seq=5 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:25:21.200Z
+[producer] published seq=6 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:25:28.705Z
+[producer] published seq=7 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:25:36.110Z
+[producer] published seq=8 topic=smartbin/bin-01/pir-01/events state=detected event_time=2026-04-26T09:25:50.519Z
 [producer] done. produced=8 dropped=0
 ```
 - Event logger(JSONL)
@@ -138,6 +138,23 @@ python producer.py --broker localhost --topic smartbin/bin-01/pir-01/events --pi
 {"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:42.010Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 7, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
 {"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:47.014Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 8, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
 ```
+- Output example, producer online - consumer offline
+```
+(venv) iotlab_upat_6@iotlab-Upat-6:~/team/advanced-programming-techniques-lab/labs/lab06 $ python consumer.py   --broker localhost   --port 1883   --topic "smartbin/bin-01/pir-01/events"   --qos 1   --out motion_events.jsonl \
+>
+/home/iotlab_upat_6/team/advanced-programming-techniques-lab/labs/lab06/consumer.py:50: DeprecationWarning: Callback API version 1 is deprecated, update to latest version
+  self.client = mqtt.Client(client_id=client_id)
+[consumer-storage] done. consumed=0
+```
+None of the messages that were produced was shown when the consumer came back online
+
+- Output example: Run the consumer with a wildcard topic
+```
+
+```
+
+
+
 
 
 ---
@@ -167,6 +184,14 @@ In the threaded version, a full queue blocked or dropped messages directly in th
 ## RQ10
 Polling `queue.get(timeout=0.5)` has the consumer doing loops every 0.5 seconds, whether there was motion detectd or not. The callback pattern (on_message) is passive which means the consumer registers a function and paho-mqtt calls it automatically when a message arrives. 
 ## RQ11
+```
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:22.096Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 4, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:27.800Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 5, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:35.005Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 6, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:42.010Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 7, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+{"@context": "models/context.jsonld", "@type": "sosa:Observation", "event_time": "2026-04-25T17:21:47.014Z", "device_id": "urn:dev:team-06:pir-motion-sensor-01", "wastebin_id": "urn:dev:team-06:wastebin-01", "environment_id": "urn:dev:team-06:environment-01", "event_type": "motion", "motion_state": "detected", "seq": 8, "run_id": "44135bee-992c-4341-b8ea-72227b912cf2"}
+```
+The JSON structure is identical to previous labs.
 ## RQ12
 ## RQ13
 Yes, both received every message because the broker fans out to all matching subscribers. This matters because you can add consumer independently without modifying the producer or any other consumer.
