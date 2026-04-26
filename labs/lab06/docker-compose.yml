@@ -13,6 +13,7 @@ services:
       dockerfile: Dockerfile
     container_name: mqtt-producer
 
+    user: root
     privileged: true
 
     devices:
