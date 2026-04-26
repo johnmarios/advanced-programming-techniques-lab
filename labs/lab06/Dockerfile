@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     python3-dev \
     swig \
+    python3-rpi.gpio \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -r requirements.txt
