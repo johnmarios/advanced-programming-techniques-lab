@@ -128,7 +128,7 @@ class Consumer:
 			while not self.stop_flag["stop"]:
 				if self.args.duration > 0 and (time.time() - start_t) >= self.args.duration:
 					break
-				# time.sleep(0.2) 
+				time.sleep(0.2)
 		finally:
 			self.client.loop_stop()
 			self.client.disconnect() # ensure MQTT client is properly disconnected
