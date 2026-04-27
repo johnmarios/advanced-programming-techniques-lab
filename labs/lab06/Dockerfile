@@ -1,34 +1,25 @@
-# Slim Python base image
+# get a lightweight Python image
 FROM python:3.11-slim
 
-# buffering
+# whatever print statements we have will be displayed immediately
 ENV PYTHONUNBUFFERED=1
-# Set environment variable for GPIO access
-ENV GPIOZERO_PIN_FACTORY=lgpio
-# Set the working directory inside the container
-WORKDIR /lab6
 
+# set a working directory for the app inside the container
+WORKDIR /app
 
-# Copy requirements file and install dependencies
-COPY requirements.txt .
-# Install lgpio dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    python3-dev \
-    swig \
-    && rm -rf /var/lib/apt/lists/*
-
+# copy the requirements file inside the container and install dependencies
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the library folder
+# copy the rest of the app's code inside the container in the /app directory
 COPY pirlib/ pirlib/
+COPY models/ models/
+COPY producer.py consumer.py ./
 
-COPY consumer.py .
-COPY producer.py .
+# create a directory for the app where consumer can store data
+RUN mkdir -p /data
 
-# Create output directory
-RUN mkdir -p /lab6/output
+# Default command; docker-compose overrides this per service
+# so by default, the producer will run with simulation and verbose output, connecting to the broker service
+CMD ["python", "producer.py", "--broker", "broker", "--simulate", "--verbose"]
 
-# Default command when the container starts
-CMD ["python", "--version"]
-#there is already command in compose file
