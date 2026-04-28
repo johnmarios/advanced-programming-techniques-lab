@@ -1,0 +1,4 @@
+gpiozero==2.0.1
+paho-mqtt
+lgpio
+RPi.GPIO
