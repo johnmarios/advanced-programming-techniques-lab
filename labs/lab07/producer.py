@@ -152,11 +152,39 @@ class Producer:
         self.seq = args.seq_start
 
         self.client = self.create_mqtt_client(client_id=self.args.client_id, clean_session=self.args.clean_session)
+    
+    def ha_pub_discovery(self, client, container_id, device_id):
+        config = {
+            "name": "Motion Sensor",
+            "state_topic": f"{container_id}/{device_id}/motion",
+            "payload_on": "detected",
+            "payload_off": "clear",
+            "device_class": "motion",
+            "unique_id": f"{device_id}_motion_sensor",
+            "device": {
+                "identifiers": [f"{container_id}_{device_id}"],
+                "name": f"Device {device_id}",
+                "model": "Docker Motion Sensor",
+                "manufacturer": "Team 06"
+            }
+        }
+        payload = json.dumps(config)
+
+        topic = f"homeassistant/binary_sensor/{device_id}/motion/config"
+
+        client.publish(topic, payload, qos=1, retain=True)
 
     def produce(self):
         try:
             self.client.connect(self.args.broker, self.args.port, 60) # 60 is the keepalive interval in seconds
             self.client.loop_start()
+
+            # Publish Home Assistant discovery configuration for the PIR sensor
+            self.ha_pub_discovery(
+                self.client,
+                container_id="pir_sensor",
+                device_id=self.args.device_id
+            )
 
             start_t = time.time()
 
@@ -194,6 +222,18 @@ class Producer:
 
                     payload = json.dumps(record) # Convert the event record dictionary to a JSON string for MQTT payload
                     result = self.client.publish(self.args.topic, payload, qos=self.args.qos)
+                    
+                    # # Publish simplified HA state (detected / clear)
+                    ha_topic = f"pir_sensor/{self.args.device_id}/motion"
+
+                    if event.get("kind") == "motion_detected":
+                        self.client.publish(ha_topic, "detected", qos=1 ,retain=True)
+                    else:
+                        self.client.publish(ha_topic, "clear", qos=1 ,retain=True)
+
+                    
+                    
+                    
                     if result.rc == mqtt.MQTT_ERR_SUCCESS:
                         self.metrics["produced"] += 1
                         if self.args.verbose:
