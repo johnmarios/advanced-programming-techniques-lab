@@ -109,9 +109,7 @@ services:
     privileged: true
     devices:
       - /dev/gpiomem0:/dev/gpiomem
-      - /dev/gpiomem0:/dev/gpiomem0
       - /dev/gpiochip0:/dev/gpiochip0
-      - /dev/gpiochip4:/dev/gpiochip4
     command: >
       python producer.py
       --broker broker
