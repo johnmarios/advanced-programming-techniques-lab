@@ -7,10 +7,6 @@ ENV PYTHONUNBUFFERED=1
 # set a working directory for the app inside the container
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    gcc \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
 # copy the requirements file inside the container and install dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt

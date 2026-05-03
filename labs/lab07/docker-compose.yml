@@ -107,14 +107,11 @@ services:
     # the producer service needs privileged access to the host's GPIO devices to read from the PIR sensor,
     # so we set privileged: true and map the necessary device files from the host to the container
     privileged: true
-
-    user: root
-
-    environment:
-      - GPIOZERO_PIN_FACTORY=lgpio
-      
     devices:
+      - /dev/gpiomem0:/dev/gpiomem
+      - /dev/gpiomem0:/dev/gpiomem0
       - /dev/gpiochip0:/dev/gpiochip0
+      - /dev/gpiochip4:/dev/gpiochip4
     command: >
       python producer.py
       --broker broker
