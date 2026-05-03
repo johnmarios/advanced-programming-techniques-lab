@@ -154,6 +154,7 @@ class Producer:
         self.client = self.create_mqtt_client(client_id=self.args.client_id, clean_session=self.args.clean_session)
     
     def ha_pub_discovery(self, client, container_id, device_id):
+
         config = {
             "name": "Motion Sensor",
             "state_topic": f"{container_id}/{device_id}/motion",
@@ -161,6 +162,11 @@ class Producer:
             "payload_off": "clear",
             "device_class": "motion",
             "unique_id": f"{device_id}_motion_sensor",
+
+            "availability_topic": f"{container_id}/{device_id}/status",
+            "payload_available": "online",
+            "payload_not_available": "offline",
+
             "device": {
                 "identifiers": [f"{container_id}_{device_id}"],
                 "name": f"Device {device_id}",
@@ -168,6 +174,7 @@ class Producer:
                 "manufacturer": "Team 06"
             }
         }
+
         payload = json.dumps(config)
 
         topic = f"homeassistant/binary_sensor/{device_id}/motion/config"
@@ -178,6 +185,21 @@ class Producer:
         try:
             self.client.connect(self.args.broker, self.args.port, 60) # 60 is the keepalive interval in seconds
             self.client.loop_start()
+
+            # Publish initial availability status for Home Assistant
+            self.client.publish(
+                f"pir_sensor/{self.args.device_id}/status",
+                "online",
+                retain=True
+            )
+
+
+            ha_topic = f"pir_sensor/{self.args.device_id}/motion"
+
+            
+            # Publish initial state for Home Assistant (clear)
+            self.client.publish(ha_topic, "clear", retain=True)
+
 
             # Publish Home Assistant discovery configuration for the PIR sensor
             self.ha_pub_discovery(
@@ -226,12 +248,13 @@ class Producer:
                     # # Publish simplified HA state (detected / clear)
                     ha_topic = f"pir_sensor/{self.args.device_id}/motion"
 
-                    if event.get("kind") == "motion_detected":
-                        self.client.publish(ha_topic, "detected", qos=1 ,retain=True)
-                    else:
-                        self.client.publish(ha_topic, "clear", qos=1 ,retain=True)
-
                     
+                    if event.get("kind") == "motion_detected":
+                        ha_state = "detected"
+                    else:
+                        ha_state = "clear"
+
+                    self.client.publish(ha_topic, ha_state, qos=1, retain=True)
                     
                     
                     if result.rc == mqtt.MQTT_ERR_SUCCESS:
