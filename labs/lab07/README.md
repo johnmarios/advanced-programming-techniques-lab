@@ -281,14 +281,31 @@ The device block groups entities under a physical device using shared identifier
 - **Wastebin Motion Count (Helper)** — a HA-native counter incremented by automation. This was chosen because it can be reset daily (via the Daily counter reset automation) giving a per-day usage count, and it displays nicely as a gauge on the dashboard.
 ## RQ11
 Entities were grouped using shared `device.identifiers` in the discovery messages.
-```
-Device: "Device pir-motion-sensor-01"
-└── binary_sensor: Device pir-motion-sensor-01 Motion Sensor
+                ┌──────────────────────────┐
+                │      PRODUCER            │
+                └──────────┬───────────────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        │                  │                  │
+        ▼                  ▼                  ▼
 
-Device: "Smart Wastebin 01"
-├── sensor: Smart Wastebin 01 Wastebin Status
-└── sensor: Smart Wastebin 01 Motion Event Count
-```
+┌────────────────┐  ┌────────────────────┐  ┌────────────────────────────┐
+│ DISCOVERY      │  │ EVENTS (JSON)      │  │ STATE (ON/OFF)             │
+│ (μία φορά)     │  │ (κάθε event)       │  │ (κάθε event)               │
+└──────┬─────────┘  └─────────┬──────────┘  └──────────────┬─────────────┘
+       │                      │                            │
+       ▼                      ▼                            ▼
+
+homeassistant/.../config   environments/.../events   pir_sensor/.../motion
+
+       │                      │                            │
+       ▼                      ▼                            ▼
+
+┌───────────────┐     ┌──────────────────┐        ┌────────────────────┐
+│ Home Assistant│     │    CONSUMER      │        │  Home Assistant    │
+│ (register)    │     │ (JSONL logger)   │        │ (live state ON/OFF)│
+└───────────────┘     └──────────────────┘        └────────────────────┘
 ## RQ12
 The Counter helper is a built-in HA entity that holds a persistent integer value. It survives restarts when "Restore" is enabled. The following services can be called on it:
 - `counter.increment` — adds the step value (default 1)
