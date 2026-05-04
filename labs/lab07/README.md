@@ -260,7 +260,7 @@ Home Assistant OS takes over the entire machine with its own operating system. H
  2. Sensor : `Wastebin_status` -> state: active.
  3. Counter : `Wastebin_Motion_Count` -> state: Number (how many rubbish has been thrown).
 ## RQ4
-Our system publishes a retained JSON config message to `homeassistant/<component>/<object_id>/config`. The payload describes the entity's name, state topic, payload values, device class, and device data that HA reads and automatically creates the entity.
+Our system publishes a retained MQTT discovery message to `homeassistant/<component>/<object_id>/config`. The payload defines the entity name, state topic, payload values, device class, and device metadata that Home Assistant uses to create the entity automatically.
 ## RQ5
 The retain flag makes the broker store the last message. If HA restarts after the discovery message was published, it reads the retained message on reconnect and recreates all entities. Without retain, entities would disappear every time HA restarts.
 ## RQ6
@@ -270,42 +270,22 @@ The device block groups entities under a physical device using shared identifier
 ## RQ8
 | Entity | Type | State Topic | Reason |
 |---|---|---|---|
-| Device pir-motion-sensor-01 Motion Sensor | `binary_sensor` | `smartbin/bin-01/pir-01/motion` | Represents the physical PIR sensor; binary (detected/clear)|
-| Smart Wastebin 01 Wastebin Status | `sensor` | `smartbin/bin-01/status` | Holds the overall bin state |
-| Smart Wastebin 01 Motion Event Count | `sensor` | `smartbin/bin-01/pir-01/event_count` | Tracks cumulative motion events published from the producer |
-| Wastebin Motion Count (Helper) | `counter` | *(HA helper, no MQTT topic)* | HA-native counter incremented by automation, shown as gauge on dashboard |
+| PIR Motion Sensor | `binary_sensor` | `smartbin/bin-01/pir-01/motion` | Represents the physical PIR sensor; binary state: detected/clear |
+| Wastebin Status | `sensor` | `smartbin/bin-01/status` | Holds the overall bin state |
+| Motion Event Count | `sensor` | `smartbin/bin-01/pir-01/event_count` | Tracks cumulative motion events published by the producer |
+| Wastebin Motion Count (Helper) | `counter` | *(HA helper, no MQTT topic)* | HA-native counter incremented by automation and shown on the dashboard |
+Automations are not listed here because they are workflows, not entities, and they do not have MQTT state topics.
 ## RQ9
-*device_class: motion*. It changes the icon to a motion sensor icon, changes the state labels from "On/Off" to "Detected/Clear", and affects how HA categorizes the entity in dashboards and history.
+`device_class: motion` changes the icon to a motion sensor, changes the state labels from "On/Off" to "Detected/Clear", and helps Home Assistant categorize the entity in dashboards and history.
 ## RQ10
-- **Smart Wastebin 01 Motion Event Count** — a sensor that tracks cumulative motion events published directly from the producer. This gives a running total that persists independently of the HA counter helper.
-- **Wastebin Motion Count (Helper)** — a HA-native counter incremented by automation. This was chosen because it can be reset daily (via the Daily counter reset automation) giving a per-day usage count, and it displays nicely as a gauge on the dashboard.
+- **Motion Event Count** — a sensor that tracks cumulative motion events published directly from the producer. This gives a running total that persists independently of the HA counter helper.
+- **Wastebin Motion Count (Helper)** — a HA-native counter incremented by automation. This can be reset daily by the Daily counter reset automation, giving a per-day usage count, and it displays nicely as a gauge on the dashboard.
 ## RQ11
-Entities were grouped using shared `device.identifiers` in the discovery messages.
-                ┌──────────────────────────┐
-                │      PRODUCER            │
-                └──────────┬───────────────┘
-                           │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-        │                  │                  │
-        ▼                  ▼                  ▼
-
-┌────────────────┐  ┌────────────────────┐  ┌────────────────────────────┐
-│ DISCOVERY      │  │ EVENTS (JSON)      │  │ STATE (ON/OFF)             │
-│ (μία φορά)     │  │ (κάθε event)       │  │ (κάθε event)               │
-└──────┬─────────┘  └─────────┬──────────┘  └──────────────┬─────────────┘
-       │                      │                            │
-       ▼                      ▼                            ▼
-
-homeassistant/.../config   environments/.../events   pir_sensor/.../motion
-
-       │                      │                            │
-       ▼                      ▼                            ▼
-
-┌───────────────┐     ┌──────────────────┐        ┌────────────────────┐
-│ Home Assistant│     │    CONSUMER      │        │  Home Assistant    │
-│ (register)    │     │ (JSONL logger)   │        │ (live state ON/OFF)│
-└───────────────┘     └──────────────────┘        └────────────────────┘
+| Group | Entities |
+|---|---|
+| Device1: Smart Wastebin | Motion Event Count<br>Wastebin Status |
+| Device2: Docker Motion Sensor | Motion Sensor |
+| Standalone entities | <br>wastebin motion count (helper)<br><br> |
 ## RQ12
 The Counter helper is a built-in HA entity that holds a persistent integer value. It survives restarts when "Restore" is enabled. The following services can be called on it:
 - `counter.increment` — adds the step value (default 1)
@@ -410,7 +390,7 @@ The JSONL consumer needs the full structured event (timestamps, sequence number,
 ## RQ17
 ![alt text](dashboard.png)
 ## RQ18
-The entity stays at its last known state and it does'n become unavailable automatically. To fix this,  we would need to add an availability_topic to the discovery config and configure the producer to publish a Last Will and Testament (LWT) message of "offline" on disconnect. HA will then correctly show the entity as unavailable when the producer is down.
+The entity stays at its last known state and it does not become unavailable automatically. In our setup, the discovery config already includes an `availability_topic` with `online`/`offline` payloads. To make the entity switch to unavailable when the producer goes down, the producer must publish `offline` on shutdown or use an MQTT Last Will and Testament (LWT) so the broker sends `offline` on an unexpected disconnect. Home Assistant will then correctly show the entity as unavailable.
 ## RQ19
 Home Assistant saves weeks of development because you get a dashboard, state history, automations, and alerting for free by just downloading the app. The trade-off is working within its conventions (discovery topics, device classes, value templates) with limited control over the underlying framework.
 ## RQ20 
