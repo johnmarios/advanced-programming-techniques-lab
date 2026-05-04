@@ -249,9 +249,187 @@ mode: single
 ##  Part 7 — Build a simple dashboard
 Our dashboard:
 ![alt text](dashboard.png)
-
 # SECTION B - REPORT
 ## RQ1
+Home Assistant is an open-source local IoT platform with a web dashboard, device registry, automation engine, and state history built in. This practically means we only needed to connect our pipeline to it via MQTT.
+## RQ2
+Home Assistant OS takes over the entire machine with its own operating system. Home Assistant Container runs only the HA core as a Docker container on our existing OS.That's why we used the container method
+## RQ3
+ An entity is anything with a state, like a sensor reading, a device status or a counter. 3 examples from our setup:
+ 1. Binary sensor : `PIR_Motion_Sensor` -> state: clear/detected.
+ 2. Sensor : `Wastebin_status` -> state: active.
+ 3. Counter : `Wastebin_Motion_Count` -> state: Number (how many rubbish has been thrown).
+## RQ4
+Our system publishes a retained JSON config message to `homeassistant/<component>/<object_id>/config`. The payload describes the entity's name, state topic, payload values, device class, and device data that HA reads and automatically creates the entity.
+## RQ5
+The retain flag makes the broker store the last message. If HA restarts after the discovery message was published, it reads the retained message on reconnect and recreates all entities. Without retain, entities would disappear every time HA restarts.
+## RQ6
+The device block groups entities under a physical device using shared identifiers. When multiple entities share the same device.identifiers, HA groups them all under one device entry(e.g smart_wastebin_01
+## RQ7
+`state_topic` provides the entity's primary state value. `json_attributes_topic` provides supplementary key-value data attached to that state. Use state_topic for the main value and `json_attributes_topic` for extra context like location or last_motion.
+## RQ8
+| Entity | Type | State Topic | Reason |
+|---|---|---|---|
+| Device pir-motion-sensor-01 Motion Sensor | `binary_sensor` | `smartbin/bin-01/pir-01/motion` | Represents the physical PIR sensor; binary (detected/clear)|
+| Smart Wastebin 01 Wastebin Status | `sensor` | `smartbin/bin-01/status` | Holds the overall bin state |
+| Smart Wastebin 01 Motion Event Count | `sensor` | `smartbin/bin-01/pir-01/event_count` | Tracks cumulative motion events published from the producer |
+| Wastebin Motion Count (Helper) | `counter` | *(HA helper, no MQTT topic)* | HA-native counter incremented by automation, shown as gauge on dashboard |
+## RQ9
+*device_class: motion*. It changes the icon to a motion sensor icon, changes the state labels from "On/Off" to "Detected/Clear", and affects how HA categorizes the entity in dashboards and history.
+## RQ10
+- **Smart Wastebin 01 Motion Event Count** — a sensor that tracks cumulative motion events published directly from the producer. This gives a running total that persists independently of the HA counter helper.
+- **Wastebin Motion Count (Helper)** — a HA-native counter incremented by automation. This was chosen because it can be reset daily (via the Daily counter reset automation) giving a per-day usage count, and it displays nicely as a gauge on the dashboard.
+## RQ11
+Entities were grouped using shared `device.identifiers` in the discovery messages.
+```
+Device: "Device pir-motion-sensor-01"
+└── binary_sensor: Device pir-motion-sensor-01 Motion Sensor
+
+Device: "Smart Wastebin 01"
+├── sensor: Smart Wastebin 01 Wastebin Status
+└── sensor: Smart Wastebin 01 Motion Event Count
+```
+## RQ12
+The Counter helper is a built-in HA entity that holds a persistent integer value. It survives restarts when "Restore" is enabled. The following services can be called on it:
+- `counter.increment` — adds the step value (default 1)
+- `counter.decrement` — subtracts the step value
+- `counter.reset` — sets the value back to the initial value (0)
+- `counter.set_value` — sets it to a specific integer
+## RQ13
+```
+alias: Count motion events(Automation)
+description: ""
+triggers:
+  
+trigger: state
+  entity_id:
+binary_sensor.device_pir_motion_sensor_01_motion_sensor
+    to: "on"
+conditions: []
+actions:
+  
+action: counter.increment
+  metadata: {}
+  target:
+    entity_id: counter.wastebin_motion_count_helper
+  data: {}
+mode: single
+```
+- Trigger: PIR sensor state changes to "on" (motion detected)
+- Conditions: none — every detection counts
+- Action: increments counter.wastebin_motion_count_helper by 1
+## RQ14
+Three additional automations were created:
+1. **Motion Alert** — Trigger: PIR sensor goes to `"on"`. It creates a persistent notification with the current timestamp.
+
+```yaml
+alias: Motion alert(Automation)
+description: ""
+triggers:
+  
+trigger: state
+  entity_id:
+binary_sensor.device_pir_motion_sensor_01_motion_sensor
+to:
+"on"
+conditions: []
+actions:
+  
+action: persistent_notification.create
+  metadata: {}
+  data:
+    message: Motion detected at Smart Wastebin 01 — {{ now().strftime('%H:%M:%S') }}
+    title: Wastebin Alert
+mode: single
+```
+
+2. **Daily Counter Reset** — Trigger: `time_pattern` at midnight. It resets `wastebin_motion_count_helper` to 0 every day.
+
+```yaml
+alias: Daily counter reset(Auto)
+description: ""
+triggers:
+  
+trigger: time_pattern
+  hours: "0"
+  minutes: "00"
+  seconds: "00"
+conditions: []
+actions:
+  
+action: counter.reset
+  metadata: {}
+  target:
+    entity_id: counter.wastebin_motion_count_helper
+  data: {}
+mode: single
+```
+
+3. **Capacity Warning** — Trigger: counter exceeds 10. It creates a persistent notification warning of high input volume.
+
+```yaml
+alias: Capacity warning(Auto)
+description: ""
+triggers:
+  
+trigger: numeric_state
+  entity_id:
+counter.wastebin_motion_count_helper
+above: 10
+conditions: []
+actions:
+  
+action: persistent_notification.create
+  metadata: {}
+  data:
+    title: Warning !!!
+    message: High input volume
+mode: single
+```
+## RQ15
+The Capacity Warning automation is exactly this.It is treggered when the counter value rises above 10 and sends a notification that the bin has high input volume.
+## RQ16
+The JSONL consumer needs the full structured event (timestamps, sequence number, latency, JSON-LD context). HA needs only a simple scalar like "detected". Sending the full JSON event to HA's state topic would require complex value_template workarounds and would tightly couple HA's config to the event schema. Separate topics let each consumer get exactly what it needs.
+## RQ17
+![alt text](dashboard.png)
+## RQ18
+The entity stays at its last known state and it does'n become unavailable automatically. To fix this,  we would need to add an availability_topic to the discovery config and configure the producer to publish a Last Will and Testament (LWT) message of "offline" on disconnect. HA will then correctly show the entity as unavailable when the producer is down.
+## RQ19
+Home Assistant saves weeks of development because you get a dashboard, state history, automations, and alerting for free by just downloading the app. The trade-off is working within its conventions (discovery topics, device classes, value templates) with limited control over the underlying framework.
+## RQ20 
+Running locally means automations and state updates execute in milliseconds with no internet dependency. The system keeps working during outages, sensor data never leaves the premises and there are no ongoing cloud costs.
+## RQ21
+With MQTT discovery, each new bin just publishes its own config messages at startup and HA auto-registers all 30 entities with no changes to HA's configuration. With manual YAML, every sensor requires editing config files and restarting HA.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
