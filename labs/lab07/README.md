@@ -168,6 +168,7 @@ We changed the code on the `producer.py` and got the following results:
 ![alt text](helper_1.png)
 ![alt text](helper_2.png)
 ![alt text](helper_3.png)
+![alt text](not1.png)
 ## The YAML we created 
 ```
 alias: Motion alert(Automation)
@@ -246,6 +247,11 @@ mode: single
 ```
 
 ##  Part 7 — Build a simple dashboard
+Our dashboard:
+![alt text](dashboard.png)
+
+# SECTION B - REPORT
+## RQ1
 
 
 
