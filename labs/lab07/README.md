@@ -157,9 +157,93 @@ mosquitto_pub -h localhost -t "homeassistant/sensor/wastebin_01_motion_count/con
 - We also created a helper counter, that runs in the home assistant called **Wastebin Motion Count**
 ## Part 5 — Publish from your pipeline
 We changed the code on the `producer.py` and got the following results:
+![alt text](run1_lab7.png)
+![alt text](run2_lab7.png)
+![alt text](run3_lab7.png)
+![alt text](run4_lab7.png)
 
-
-
+## Part 6 — Create a motion counter with automations
+- Following the steps given on the lab website we created the helper counter running on the home assistant app named **Wastebin Motion Count**
+- The results:
+![alt text](helper_1.png)
+![alt text](helper_2.png)
+![alt text](helper_3.png)
+## The YAML we created 
+```
+alias: Motion alert(Automation)
+description: ""
+triggers:
+  
+trigger: state
+  entity_id:
+binary_sensor.device_pir_motion_sensor_01_motion_sensor
+to:
+"on"
+conditions: []
+actions:
+  
+action: persistent_notification.create
+  metadata: {}
+  data:
+    message: Motion detected at Smart Wastebin 01 — {{ now().strftime('%H:%M:%S') }}
+    title: Wastebin Alert
+mode: single
+-------------------------------
+alias: Daily counter reset(Auto)
+description: ""
+triggers:
+  
+trigger: time_pattern
+  hours: "0"
+  minutes: "00"
+  seconds: "00"
+conditions: []
+actions:
+  
+action: counter.reset
+  metadata: {}
+  target:
+    entity_id: counter.wastebin_motion_count_helper
+  data: {}
+mode: single
+--------------------------------
+alias: Count motion events(Automation)
+description: ""
+triggers:
+  
+trigger: state
+  entity_id:
+binary_sensor.device_pir_motion_sensor_01_motion_sensor
+to:
+"on"
+conditions: []
+actions:
+  
+action: counter.increment
+  metadata: {}
+  target:
+    entity_id: counter.wastebin_motion_count_helper
+  data: {}
+mode: single
+-------------
+alias: Capacity warning(Auto)
+description: ""
+triggers:
+  
+trigger: numeric_state
+  entity_id:
+counter.wastebin_motion_count_helper
+above: 10
+conditions: []
+actions:
+  
+action: persistent_notification.create
+  metadata: {}
+  data:
+    title: Warning !!!
+    message: High input volume
+mode: single
+```
 
 
 
