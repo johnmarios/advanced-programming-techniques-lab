@@ -105,6 +105,64 @@ mosquitto_pub -h localhost -t "homeassistant/binary_sensor/pir_01_motion/config"
   }
 }'
 ```
+- Publish a state update:
+```
+mosquitto_pub -h localhost -t "smartbin/bin-01/pir-01/motion" -m "detected"
+```
+A new entity is visible **PIR motion sensor** showing **detected**.
+
+- Publish a second state update but instead of `detected` write `clear`. The same result shoud be shown.
+
+## Part 4 — Create the Smart Wastebin entity
+- We created the `PIR motion sensor` in part 3.
+- Create the wastebin by typing this:
+```
+mosquitto_pub -h localhost -t "homeassistant/sensor/wastebin_01_status/config" -r -m '{
+  "name": "Wastebin Status",
+  "state_topic": "smartbin/bin-01/status",
+  "value_template": "{{ value_json.state }}",
+  "json_attributes_topic": "smartbin/bin-01/status",
+  "unique_id": "wastebin_01_status",
+  "device": {
+    "identifiers": ["bin-01"],
+    "name": "Smart Wastebin 01",
+    "model": "Smart Wastebin v1",
+    "manufacturer": "ECE CK801 Team"
+  }
+}'
+```
+Then publish state with attributes: 
+```
+mosquitto_pub -h localhost -t "smartbin/bin-01/status" -m '{
+  "state": "active",
+  "location": "Lab Room 101",
+  "last_motion": "2026-04-10T14:32:01Z",
+  "total_events_today": 42
+}'
+```
+- Create a motion event counter :
+```
+mosquitto_pub -h localhost -t "homeassistant/sensor/wastebin_01_motion_count/config" -r -m '{
+  "name": "Motion Event Count",
+  "state_topic": "smartbin/bin-01/pir-01/event_count",
+  "unit_of_measurement": "events",
+  "icon": "mdi:motion-sensor",
+  "unique_id": "wastebin_01_motion_count",
+  "device": {
+    "identifiers": ["bin-01"],
+    "name": "Smart Wastebin 01"
+  }
+}'
+```
+- We also created a helper counter, that runs in the home assistant called **Wastebin Motion Count**
+## Part 5 — Publish from your pipeline
+We changed the code on the `producer.py` and got the following results:
+
+
+
+
+
+
 
 
 
