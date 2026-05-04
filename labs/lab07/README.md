@@ -245,6 +245,7 @@ action: persistent_notification.create
 mode: single
 ```
 
+##  Part 7 — Build a simple dashboard
 
 
 
