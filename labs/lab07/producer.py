@@ -181,6 +181,42 @@ class Producer:
 
         client.publish(topic, payload, qos=1, retain=True)
 
+
+        # Additionally, we can publish a sensor configuration for the wastebin status
+        client.publish(
+            "homeassistant/sensor/wastebin_01_status/config",
+            json.dumps({
+                "name": "Wastebin Status",
+                "state_topic": "smartbin/bin-01/status",
+                "value_template": "{{ value_json.state }}",
+                "json_attributes_topic": "smartbin/bin-01/status",
+                "unique_id": "wastebin_01_status",
+                "device": {
+                    "identifiers": ["bin-01"],
+                    "name": "Smart Wastebin 01",
+                    "model": "Smart Wastebin v1",
+                    "manufacturer": "Team 06"
+                }
+            }),
+            retain=True
+        )
+
+        # We can also publish a sensor configuration for the motion event count
+        client.publish(
+            "homeassistant/sensor/wastebin_01_motion_count/config",
+            json.dumps({
+                "name": "Motion Event Count",
+                "state_topic": "smartbin/bin-01/pir-01/event_count",
+                "unit_of_measurement": "events",
+                "unique_id": "wastebin_01_motion_count",
+                "device": {
+                    "identifiers": ["bin-01"],
+                    "name": "Smart Wastebin 01"
+                }
+            }),
+            retain=True
+        )
+
     def produce(self):
         try:
             self.client.connect(self.args.broker, self.args.port, 60) # 60 is the keepalive interval in seconds
@@ -196,7 +232,7 @@ class Producer:
 
             ha_topic = f"pir_sensor/{self.args.device_id}/motion"
 
-            
+
             # Publish initial state for Home Assistant (clear)
             self.client.publish(ha_topic, "clear", retain=True)
 
@@ -208,6 +244,20 @@ class Producer:
                 device_id=self.args.device_id
             )
 
+            # Publish initial status for the wastebin (inactive)
+            status_payload = {
+                "state": "active",
+                "location": "Lab Room",
+                "last_motion": None,
+                "total_events_today": 0
+            }
+            
+            # Publish the wastebin status to a separate topic for Home Assistant integration
+            self.client.publish(
+                "smartbin/bin-01/status",
+                json.dumps(status_payload),
+                retain=True
+)
             start_t = time.time()
 
             while not self.stop_flag["stop"]:
@@ -223,11 +273,37 @@ class Producer:
                     continue
 
                 for event in self.interpreter.update(raw, now):
-                    seq = self.seq
-                    self.seq += 1
                     event_time = epoch_to_utc_iso(event["t"])
-                    state = "detected" if event.get("kind") == "motion_detected" else str(event.get("kind", "unknown"))
+                    if event.get("kind") == "motion_detected":
+                        state = "detected"
+                    else:
+                        state = "clear"
 
+                    # Publish the event count to a separate topic for Home Assistant integration
+                    if event.get("kind") == "motion_detected":
+                        self.seq += 1
+
+                        self.client.publish(
+                            "smartbin/bin-01/pir-01/event_count",
+                            str(self.seq),
+                            retain=True
+                        )
+                    seq = self.seq
+
+                    # Update the wastebin status with the latest motion event information
+                    if event.get("kind") == "motion_detected":
+                        status_payload = {
+                            "state": "active",
+                            "location": "Lab Room",
+                            "last_motion": event_time,
+                            "total_events_today": self.seq
+                        }
+
+                        self.client.publish(
+                            "smartbin/bin-01/status",
+                            json.dumps(status_payload),
+                            retain=True
+                        )
                     # send the dictionary as a JSON message to the MQTT topic
                     
                     record = create_event(
