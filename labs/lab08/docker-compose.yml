@@ -1,0 +1,168 @@
+services:
+
+  broker:
+    # download the official Eclipse Mosquitto image from Docker Hub
+    image: eclipse-mosquitto:2
+
+    # give the container a name for easier reference
+    container_name: iot-broker
+    
+    # expose the MQTT port to the host machine so that producers and consumers can connect to it
+    ports: 
+      - "1883:1883"
+
+    # write a minimal valid config and then start broker
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        cat > /mosquitto/config/mosquitto.conf <<'EOF'
+        listener 1883
+        allow_anonymous true
+        EOF
+        exec mosquitto -c /mosquitto/config/mosquitto.conf
+    # set resource limits and restart policy for the broker
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
+    restart: unless-stopped
+
+
+  consumer:
+  # build the consumer image using the Dockerfile in the current directory
+    build:
+    # specify the build context and Dockerfile location
+    # the context is the current directory (where the Dockerfile is), 
+    # and we can specify the Dockerfile name if it's not the default "Dockerfile"
+      context: . 
+      dockerfile: Dockerfile
+
+    # give the container a name for easier reference 
+    container_name: iot-consumer
+
+    # the consumer service depends on the broker service, so it will wait for the broker to be ready before starting
+    depends_on:
+      - broker
+
+    # it binds the folder /data of the container to a named volume called pipeline-data, 
+    # so that the events.jsonl file created by the consumer will be stored persistently 
+    #and can be accessed from the host machine so if the container is restarted, the data will not be lost
+    volumes:
+      - pipeline-data:/data
+
+    # the command to run the consumer, which connects to the broker, subscribes to a topic pattern, 
+    # and writes events to a file for 50 minutes with verbose output
+    command: >
+      python consumer.py
+      --broker broker
+      --client-id consumer-main
+      --topic environments/+/wastebins/wastebin-01/sensors/pir-01/#
+      --out /data/events.jsonl
+      --duration 3000
+      --verbose
+    
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
+    restart: unless-stopped
+
+  consumer-slow: # this is a second consumer service that simulates a slower consumer by adding a delay between processing messages, so we can see how the broker handles backpressure and message buffering when one consumer is slower than the other
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iot-consumer-slow
+    depends_on:
+      - broker
+    volumes:
+      - pipeline-data:/data
+    command: >
+      python consumer.py
+      --broker broker
+      --client-id consumer-slow
+      --topic environments/environment-01/wastebins/+/sensors/pir-01/#
+      --out /data/events-slow.jsonl
+      --consumer-delay 10
+      --duration 3000
+      --verbose
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
+    restart: unless-stopped
+
+  producer:
+  # build the producer image using the Dockerfile in the current directory
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iot-producer
+    depends_on:
+      - broker
+
+    # the producer service needs privileged access to the host's GPIO devices to read from the PIR sensor,
+    # so we set privileged: true and map the necessary device files from the host to the container
+    privileged: true
+    devices:
+      - /dev/gpiomem0:/dev/gpiomem
+      - /dev/gpiomem0:/dev/gpiomem0
+      - /dev/gpiochip0:/dev/gpiochip0
+      - /dev/gpiochip4:/dev/gpiochip4
+    command: >
+      python producer.py
+      --broker broker
+      --client-id producer-main
+      --seq-start 0
+      --topic environments/environment-01/wastebins/wastebin-01/sensors/pir-01/events
+      --pin 17
+      --duration 3000
+      --device-id pir-motion-sensor-01
+      --wastebin-id wastebin-01
+      --environment-id environment-01
+      --verbose
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
+    restart: unless-stopped
+
+  producer-sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iot-producer-sim
+    depends_on:
+      - broker
+    # this service is for simulating the producer without needing access to GPIO devices, 
+    # so it doesn't require privileged access or device mappings
+    profiles: 
+      - sim
+    command: >
+      python producer.py
+      --broker broker
+      --client-id producer-sim
+      --seq-start 0
+      --topic environments/environment-01/wastebins/wastebin-01/sensors/pir-01/events
+      --simulate
+      --simulate-prob 0.8
+      --cooldown 0.2
+      --sample-interval 0.05
+      --duration 3000
+      --device-id pir-motion-sensor-01
+      --wastebin-id wastebin-01
+      --environment-id environment-01
+      --verbose
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
+    restart: unless-stopped
+
+volumes:
+  pipeline-data:

@@ -17,9 +17,7 @@ Members:
 - Connection
   Due to bad connection, we weren't able to download `homeassistant` during lab time and by using ssh, so we worked on the raspberry.
 - Software:
-  - The PIR sensor logic (`sampler.py`, `interpreter.py`) is reused from Lab 02 and placed inside `pirlib/`. 
-  - Use a venv just like lab01 and lab02.
-  - Make sure to inastall a `requirments.txt`.
+  - The PIR sensor logic (`sampler.py`, `interpreter.py`) is reused from Lab 02 and extended with taking in consideration the off/clear state and placed it inside `pirlib/`. 
   - Install Mosquitto brocker. Instructions givel on lab06
 ## Part 1 — Run Home Assistant in Docker
 1. Create a directory for Home Assistant configuration:
