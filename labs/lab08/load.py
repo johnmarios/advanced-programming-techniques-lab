@@ -1,5 +1,3 @@
-from flask import Flask
-from flask_restx import Api, Resource, fields
 import json 
 import os 
 
@@ -7,16 +5,40 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 EVENTS_FILE = os.path.join(DATA_DIR, "motion_events.jsonl") 
 # dir where the motion event data is stored
 
-app = Flask(__name__)
-api = Api(
-    app,
-    version="1.0",
-    title="Smart Wastebin API",
-    description="REST API for querying Smart Wastebin sensor data and bin status",
-)
 
-ns = api.namespace("bins", description="Wastebin operations") 
-# namespace : logical grouping of related API endpoints under the "/bins" path, with a description for documentation purposes
+def load_json(filepath):
+    with open(filepath, "r") as f:
+        return json.load(f)
+
+
+def load_events(filepath, limit=None, sensor_id=None):
+    events = []
+
+    if not os.path.exists(filepath):
+        return events
+
+    with open(filepath, "r") as f:
+
+        for line in f: 
+            line = line.strip()
+        
+            if not line:
+                continue
+
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            if sensor_id is not None and record.get("madeBySensor") != sensor_id:
+                continue
+
+            events.append(record)
+
+    events.reverse()
+    if limit is not None:
+        events = events[:limit]
+    return events
 
 bin_model = api.model("Bin", {
     "id": fields.String(required=True, description="Bin unique identifier"),
@@ -31,15 +53,3 @@ event_model = api.model("Event", {
     "hasSimpleResult": fields.String(description="Motion state (detected/clear)"),
     "pipeline_latency_ms": fields.Float(description="Pipeline latency in ms"),
 })
-
-
-@ns.route("/")
-class BinList(Resource):
-    '''Endpoint for listing all registered bins. Currently returns an empty list as a placeholder.'''
-    def get(self):
-        """List all registered bins."""
-        return {"bins": []}, 200
-
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
