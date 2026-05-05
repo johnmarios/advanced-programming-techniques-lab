@@ -1,0 +1,5 @@
+gpiozero==2.0.1
+paho-mqtt
+rpi-lgpio; sys_platform == "linux" and platform_machine == "aarch64"
+flask
+flask-restx
