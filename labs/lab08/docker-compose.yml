@@ -164,5 +164,26 @@ services:
           cpus: '0.50'
     restart: unless-stopped
 
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart-wastebin-api
+
+    depends_on:
+      - broker
+
+    ports:
+      - "5000:5000"
+
+    command: python api.py
+
+    volumes:
+      - .:/app
+
+    restart: unless-stopped
+
 volumes:
   pipeline-data:
