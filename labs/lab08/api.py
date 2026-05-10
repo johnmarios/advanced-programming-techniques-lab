@@ -200,7 +200,7 @@ def on_message(client, userdata, msg):
         }
 
 mqtt_client.on_message = on_message
-
+print("CONNECTING MQTT CLIENT")
 mqtt_client.connect("localhost",1883,60)
 
 mqtt_client.subscribe("smartbin/#",qos=1)
