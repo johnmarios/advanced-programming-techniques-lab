@@ -199,6 +199,16 @@ def on_message(client, userdata, msg):
             ).isoformat().replace("+00:00", "Z")
         }
 
+mqtt_client.on_message = on_message
+
+mqtt_client.connect("localhost",1883,60)
+
+mqtt_client.subscribe("smartbin/#",qos=1)
+
+mqtt_client.subscribe("environments/#",qos=1)
+
+mqtt_client.loop_start()
+
 
 api = Api(
     app,
@@ -917,20 +927,9 @@ class MQTTTopicDetail(Resource):
 
 if __name__ == "__main__":
 
-    mqtt_client.on_message = on_message
-
-    print("CONNECTING MQTT CLIENT")
-
-    mqtt_client.connect("localhost",1883,60)
-
-    mqtt_client.subscribe("smartbin/#",qos=1)
-    mqtt_client.subscribe("environments/#",qos=1)
-
-    mqtt_client.loop_start()
-
     app.run(
-        debug=False,
-        use_reloader=False,
+        debug=True,
         host="0.0.0.0",
         port=5000
     )
+   
