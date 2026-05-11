@@ -50,6 +50,50 @@ pip install flask flask-restx
 Event-listing endpoints use GET because they only retrieve data and do not change anything on the server. GET is safe and idempotent.
 ## RQ3
 The “mark as emptied” endpoint uses POST because it performs an action that may create side effects or new records. POST is suitable for non-idempotent operations, unlike PUT.
+## RQ4
+For bins:
+```
+class Bin(Resource):
+    def get(self, bin_id):
+        bins = load_json(BINS_FILE)
+
+        for bin_item in bins:
+            if bin_item["@id"] == bin_id:
+                return bin_item
+
+        api.abort(404, f"Wastebin {bin_id} not found")
+```
+For sensors:
+```
+class Sensor(Resource):
+    def get(self, sensor_id):
+        sensors = load_json(SENSORS_FILE)
+
+        for sensor in sensors:
+            if sensor["@id"] == sensor_id:
+                return sensor
+
+        api.abort(404, f"Sensor {sensor_id} not found")
+```
+- We chose 404 because the request itself is valid, the ID is well-formed, but no resource exists at that URI. This correctly signals "resource not found" rather than a bad request (400) or server error (500), and tells the client not to retry with the same ID.
+
+## RQ5
+PIR Sensor
+    → MQTT broker (smartbin/#)
+        → on_message() → topic_store (in-memory)
+            → POST /events → motion_events.jsonl
+                → GET /events → load_events() → JSON response
+
+## RQ6
+| Parameter   | Type    | Default | Description                             |
+|------------ |---------|---------|----------------------------------------|
+| `limit`     | integer | `50`    | Max number of events to return          |
+| `start`     | string  | —       | Filter events after this ISO timestamp  |
+| `end`       | string  | —       | Filter events before this ISO timestamp |
+| `device_id` | string  | —       | Filter by sensor ID                     |
+ 
+These apply to both `GET /events` and `GET /bins/<bin_id>/events`.
+
 ## RQ7
 `api.model` in Flask-RESTx defines the structure of request and response data. These models are automatically used to generate the Swagger UI documentation.
 When we add a new field to a model, the Swagger UI updates automatically to show the new field in the endpoint documentation, including type and description.
@@ -63,6 +107,17 @@ The HTTP request is sent to the API → the API publishes the message to the MQT
 Combining database storage and MQTT publishing in one endpoint ensures an event is permanently saved and immediately shared with  any other systems in real time.
 ## RQ13
 AsyncAPI documents event-driven (MQTT) communication, while OpenAPI documents REST endpoints. We need both because a Smart Wastebin project like ours uses REST for control and actions, while using  MQTT for real-time events.
+## RQ16
+| Aspect | `event_model` (Flask-RESTx) | `MotionEvent` (AsyncAPI) |
+|---     |---                          |---                       |
+| **Purpose** | Validates & documents the HTTP REST API | Documents the MQTT message schema |
+| **Context** | Used in `POST /events` and `GET /events` | Used when a sensor publishes to an MQTT topic |
+| **Transport** | HTTP (request/response) | MQTT (publish/subscribe) |
+| **Trigger** | A client explicitly calls the API | A sensor autonomously fires an event |
+| **Direction** | Two-way (POST to ingest, GET to retrieve) | One-way (sensor → broker → subscriber) |
+ 
+- The fields overlap (`device_id`, `event_time`, `motion_state`), but `event_model` serves a pull-based REST context while `MotionEvent` serves a push-based async context.
+
 ## RQ19
 We would give them the Swagger UI (OpenAPI) for REST endpoints and the AsyncAPI spec for MQTT events. Swagger shows how to read and update bin data and report when bins are full, while AsyncAPI shows real-time bin status updates via MQTT topics.
 ## RQ20
