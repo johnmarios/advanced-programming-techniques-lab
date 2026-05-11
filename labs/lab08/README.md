@@ -190,6 +190,13 @@ Description of each channel:
 
 3. **binStatus**  
    Publishes retained wastebin status updates such as `active`, `emptied`, or `maintenance`.
+## RQ15
+![alt text](r15_1.png)
+![alt text](r15_2.png)
+![alt text](r15_3.png)
+![alt text](r15_4.png)
+![alt text](r15_5.png)
+
 ## RQ16
 | Aspect | `event_model` (Flask-RESTx) | `MotionEvent` (AsyncAPI) |
 |---     |---                          |---                       |
