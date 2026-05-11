@@ -76,7 +76,28 @@ A screenshot of our rendered AsyncAPI documentation follows
 
 
 # SECTION B - REPORT
+## RQ1
+# RQ1: Πλήρης Σχεδιασμός API
 
+| Method | URI | Παράμετροι | Επιστρέφει |
+|--------|-----|------------|------------|
+| GET | `/contexts/context.jsonld` | — | JSON-LD context |
+| GET | `/bins/` | — | Λίστα με όλα τα wastebins |
+| GET | `/bins/<bin_id>` | `bin_id` (path) | Ένα wastebin ή 404 |
+| GET | `/bins/<bin_id>/sensors` | `bin_id` (path) | Λίστα sensors του bin |
+| GET | `/bins/<bin_id>/events` | `bin_id` (path), `limit`, `start`, `end`, `device_id` (query) | Λίστα events του bin |
+| POST | `/bins/<bin_id>/emptied` | `bin_id` (path), `emptied_at`, `emptied_by` (body) | Εγγραφή emptied ή 404 — 201 |
+| GET | `/bins/<bin_id>/emptied-records` | `bin_id` (path) | Ιστορικό αδειασμάτων του bin |
+| GET | `/sensors/` | — | Λίστα με όλους τους sensors |
+| GET | `/sensors/<sensor_id>` | `sensor_id` (path) | Ένας sensor ή 404 |
+| GET | `/environment/` | — | Λίστα environments |
+| GET | `/environment/<environment_id>` | `environment_id` (path) | Ένα environment ή 404 |
+| GET | `/environment/<environment_id>/bins` | `environment_id` (path) | Bins του environment |
+| GET | `/events/` | `limit`, `start`, `end`, `device_id` (query) | Λίστα motion events |
+| POST | `/events/` | `device_id`, `event_type`, `wastebin_id` (body, υποχρεωτικά) | Αποθηκευμένο event — 201 |
+| POST | `/mqtt/publish` | `topic`, `payload` (υποχρεωτικά), `qos`, `retain` (body) | Επιβεβαίωση δημοσίευσης — 200 |
+| GET | `/mqtt/topics` | — | Όλα τα αποθηκευμένα MQTT topics |
+| GET | `/mqtt/topics/<topic>` | `topic` (path) | Τελευταίο μήνυμα του topic ή 404 |
 ## RQ2
 Event-listing endpoints use GET because they only retrieve data and do not change anything on the server. GET is safe and idempotent.
 ## RQ3
