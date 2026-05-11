@@ -1,4 +1,4 @@
-# Virtual environments
+<<<<<<< HEAD# Virtual environments
 venv/
 
 # Python cache
@@ -9,3 +9,5 @@ __pycache__/
 *.log
 *.jsonl
 output/
+
+
