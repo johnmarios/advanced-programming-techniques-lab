@@ -42,7 +42,27 @@ flask-restx
 pip install flask flask-restx
 ```
 
-3. By writing the code given on lab's website we made sure that API works.
+3. By writing the code given on lab's website we made sure that API works and got the following result:
+
+
+## Part 2 — Design your API
+Our API design:
+
+
+## Part 3 — Implement the data endpoints
+Using the information from lab05 we loaded the data and followed the intructions given on the lab website.
+
+## Part 4 — Add MQTT endpoints
+We connected the API to our MQTT broker in order to be able to publish messages and read topic state through plain HTTP requests.
+
+## Part 5 — Document your MQTT interface with AsyncAPI
+A screenshot of our rendered AsyncAPI documentation follows
+
+## Part 6 — Test with Swagger UI and curl
+
+
+## Test the curl:
+
 
 # SECTION B - REPORT
 
