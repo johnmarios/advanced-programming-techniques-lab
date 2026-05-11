@@ -31,17 +31,6 @@ def epoch_to_utc_iso(epoch_seconds: float) -> str:
     return datetime.fromtimestamp(epoch_seconds, tz=timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
-def normalize_entity_id(value: str, default_prefix: str = "urn:dev:team-06:") -> str:
-
-    '''Normalize an entity ID by ensuring it starts with a URN prefix. 
-    If the value already starts with "urn:", it is returned unchanged. 
-    Otherwise, the default prefix is prepended to the value.'''
-
-    if value.startswith("urn:"):
-        return value
-    return f"{default_prefix}{value}"
-
-
 def create_event(
     event_time: str,
     device_id: str,
@@ -57,18 +46,16 @@ def create_event(
         "@context": context_iri,
         "@type": "sosa:Observation",
         "event_time": event_time,
-        "device_id": normalize_entity_id(device_id),
-        "wastebin_id": normalize_entity_id(wastebin_id),
-        "environment_id": normalize_entity_id(environment_id),
+        "device_id": device_id,
+        "wastebin_id": wastebin_id,
+        "environment_id": environment_id,
         "event_type": event_type,
         "motion_state": motion_state,
         "seq": seq,
         "run_id": run_id,
+        "madeBySensor": device_id,
     }
-    # context_iri: Internationalized Resource Identifier // a unique string to identify the JSON-LD context that defines the semantics of the data
-    # (unique identifier for the data schema, e.g. "https://example.com/context.jsonld")
-
-    # motion_state: "detected" or "not_detected" or other string representing the state of motion
+    
 
 def parse_args() -> argparse.Namespace:
 

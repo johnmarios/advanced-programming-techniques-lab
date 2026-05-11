@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from flask import Flask
 from flask_restx import Api, Resource, fields
 import json 
@@ -6,15 +7,228 @@ import os
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data") 
 EVENTS_FILE = os.path.join(DATA_DIR, "motion_events.jsonl") 
 # dir where the motion event data is stored
+=======
+from flask import Flask, request
+from flask_restx import Api, Resource, fields, reqparse
+from datetime import datetime, timezone
+import json
+import os
+import threading
+import paho.mqtt.client as mqtt
+
+# -----------------------------------
+# Paths
+# -----------------------------------
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
+BINS_FILE = os.path.join(MODELS_DIR, "wastebin.jsonld")
+
+SENSORS_FILE = os.path.join(MODELS_DIR, "sensor.jsonld")
+
+ENVIRONMENT_FILE = os.path.join(MODELS_DIR, "environment.jsonld")
+
+EVENTS_FILE = os.path.join(DATA_DIR, "motion_events.jsonl")
+
+CONTEXT_FILE = os.path.join(MODELS_DIR, "context.jsonld")
+
+EMPTIED_FILE = os.path.join(DATA_DIR, "emptied_records.jsonl")
+
+# -----------------------------------
+# Load JSON file
+# -----------------------------------
+
+def load_json(filepath):
+
+    if not os.path.exists(filepath):
+        return []
+
+    with open(filepath, "r", encoding="utf-8") as file:
+
+        data = json.load(file)
+
+    return data
+
+
+# -----------------------------------
+# Save JSON file
+# -----------------------------------
+
+def save_json(filepath, data):
+
+    with open(filepath, "w", encoding="utf-8") as file:
+
+        json.dump(
+            data,
+            file,
+            indent=2,
+            ensure_ascii=False
+        )
+
+
+# -----------------------------------
+# Load events from JSONL file
+# -----------------------------------
+
+
+def load_events(
+    filepath,
+    limit=None,
+    device_id=None,
+    start=None,
+    end=None
+):
+
+    events = []
+
+    if not os.path.exists(filepath):
+        return events
+
+    with open(filepath, "r", encoding="utf-8") as file:
+
+        for line in file:
+
+            line = line.strip()
+
+            if not line:
+                continue
+
+            try:
+
+                record = json.loads(line)
+
+                if device_id is not None:
+
+                    if record.get("device_id") != device_id:
+                        continue
+
+                # Filter by start datetime
+
+                event_time = record.get("event_time")
+
+                if event_time is None:
+                    continue
+
+                if start is not None:
+
+                    if event_time < start:
+                        continue
+
+                # Filter by end datetime
+                if end is not None:
+
+                    if event_time > end:
+                        continue
+
+                events.append(record)
+
+            except json.JSONDecodeError:
+                continue
+
+    # Most recent first
+    events.reverse()
+
+    # Limit results
+    if limit is not None:
+
+        events = events[:limit]
+
+    return events
+
+def load_jsonl(filepath):
+
+    records = []
+
+    if not os.path.exists(filepath):
+        return records
+
+    with open(filepath, "r", encoding="utf-8") as file:
+
+        for line in file:
+
+            line = line.strip()
+
+            if not line:
+                continue
+
+            try:
+
+                records.append(json.loads(line))
+
+            except json.JSONDecodeError:
+                continue
+
+    return records
+# -----------------------------------
+# Append event to JSONL file
+# -----------------------------------
+
+def append_event(filepath, event):
+
+    with open(filepath, "a", encoding="utf-8") as file:
+
+        json.dump(event, file, ensure_ascii=False)
+
+        file.write("\n")
+
+
+# -----------------------------------
+# Flask app and API setup
+# -----------------------------------
+>>>>>>> 954e50c1e17e502380c6a365cfc7515d8c7d9639
 
 app = Flask(__name__)
+
+mqtt_client = mqtt.Client(
+    callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
+    client_id="wastebin-api",
+    clean_session=False
+)
+
+topic_store = {}
+
+topic_lock = threading.Lock()
+
+def on_message(client, userdata, msg):
+
+    with topic_lock:
+
+        topic_store[msg.topic] = {
+            "topic": msg.topic,
+            "payload": msg.payload.decode(
+                "utf-8",
+                errors="replace"
+            ),
+            "qos": msg.qos,
+            "retain": msg.retain,
+            "timestamp": datetime.now(
+                timezone.utc
+            ).isoformat().replace("+00:00", "Z")
+        }
+
+mqtt_client.on_message = on_message
+print("CONNECTING MQTT CLIENT")
+mqtt_client.connect("localhost",1883,60)
+
+mqtt_client.subscribe("smartbin/#",qos=1)
+
+mqtt_client.subscribe("environments/#",qos=1)
+
+mqtt_client.loop_start()
+
+
 api = Api(
     app,
     version="1.0",
-    title="Smart Wastebin API",
-    description="REST API for querying Smart Wastebin sensor data and bin status",
+    title="Smart Wastebin Semantic API",
+    description="Semantic REST API for Smart Wastebin IoT System",
 )
 
+<<<<<<< HEAD
 ns = api.namespace("bins", description="Wastebin operations") 
 # namespace : logical grouping of related API endpoints under the "/bins" path, with a description for documentation purposes
 
@@ -36,10 +250,720 @@ event_model = api.model("Event", {
 @ns.route("/")
 class BinList(Resource):
     '''Endpoint for listing all registered bins. Currently returns an empty list as a placeholder.'''
-    def get(self):
-        """List all registered bins."""
-        return {"bins": []}, 200
+=======
 
+# -----------------------------------
+# Swagger Models
+# -----------------------------------
+
+bin_model = api.model(
+    "Wastebin",
+    {
+        "@id": fields.String(required=True, description="Wastebin unique identifier"),
+        "@type": fields.List(fields.String, description="Semantic types of the wastebin"),
+        "name": fields.String(description="Human-readable wastebin name"),
+        "description": fields.String(description="Wastebin description"),
+        "ck801:material": fields.String(description="Wastebin material"),
+        "ck801:capacityLiters": fields.Float(description="Wastebin capacity in liters"),
+        "ck801:color": fields.String(description="Wastebin color"),
+        "ck801:wasteType": fields.String(description="Type of waste collected"),
+        "ck801:collectionZone": fields.String(description="Assigned collection zone"),
+        "ck801:status": fields.String(description="Current wastebin status"),
+        "ck801:fillLevel": fields.Integer(description="Current fill level percentage"),
+        "ck801:timesEmptied": fields.Integer(description="Number of times the wastebin was emptied"),
+    }
+)
+
+
+sensor_model = api.model(
+    "Sensor",
+    {
+        "@id": fields.String(required=True, description="Sensor unique identifier"),
+        "@type": fields.List(fields.String, description="Semantic types of the sensor"),
+        "name": fields.String(description="Human-readable sensor name"),
+        "description": fields.String(description="Sensor description"),
+        "sosa:isHostedBy": fields.Raw(description="Wastebin hosting this sensor"),
+    }
+)
+
+
+environment_model = api.model(
+    "Environment",
+    {
+        "@id": fields.String(required=True, description="Environment unique identifier"),
+        "@type": fields.List(fields.String, description="Semantic types of the environment"),
+        "name": fields.String(description="Environment name"),
+        "description": fields.String(description="Environment description"),
+    }
+)
+
+
+event_model = api.model(
+    "Event",
+    {
+        "event_time": fields.String(description="ISO timestamp of the event"),
+        "device_id": fields.String(description="Sensor ID that generated the event"),
+        "event_type": fields.String(description="Type of generated event"),
+        "wastebin_id": fields.String(description="Associated wastebin ID"),
+        "environment_id": fields.String(description="Associated environment ID"),
+        "motion_state": fields.String(description="Motion state detected by PIR sensor"),
+        "seq": fields.Integer(description="Event sequence number"),
+        "run_id": fields.String(description="Pipeline execution ID"),
+        "ingest_time": fields.String(description="Ingestion timestamp"),
+        "pipeline_latency_ms": fields.Float(description="Pipeline latency in milliseconds"),
+    }
+)
+
+
+mqtt_model = api.model(
+    "MQTTPublish",
+    {
+        "topic": fields.String(required=True, description="MQTT topic to publish to"),
+        "payload": fields.String(required=True, description="Message payload"),
+        "qos": fields.Integer(description="Quality of Service", default=1),
+        "retain": fields.Boolean(description="Retain message", default=False),
+    }
+)
+
+
+emptied_model = api.model(
+    "EmptiedRecord",
+    {
+        "bin_id": fields.String(description="Bin identifier"),
+        "emptied_at": fields.String(description="ISO timestamp of when the bin was emptied"),
+        "emptied_by": fields.String(description="Who emptied the bin"),
+    }
+)
+
+# -----------------------------------
+# Query Parsers
+# -----------------------------------
+
+events_parser = reqparse.RequestParser()
+
+events_parser.add_argument(
+    "limit",
+    type=int,
+    default=50,
+    help="Max events to return"
+)
+
+events_parser.add_argument(
+    "start",
+    type=str,
+    help="Start datetime (ISO format)"
+)
+
+events_parser.add_argument(
+    "end",
+    type=str,
+    help="End datetime (ISO format)"
+)
+
+events_parser.add_argument(
+    "device_id",
+    type=str,
+    help="Filter events by device ID"
+)
+
+# -----------------------------------
+# Namespaces
+# -----------------------------------
+
+bins_ns = api.namespace(
+    "bins",
+    description="Wastebin operations"
+)
+
+sensors_ns = api.namespace(
+    "sensors",
+    description="Sensor operations"
+)
+
+environment_ns = api.namespace(
+    "environment",
+    description="Environment operations"
+)
+
+mqtt_ns = api.namespace(
+    "mqtt",
+    description="MQTT operations"
+)
+
+events_ns = api.namespace(
+    "events",
+    description="Motion event operations"
+)
+
+contexts_ns = api.namespace(
+    "contexts",
+    description="JSON-LD context operations"
+)
+
+
+# -----------------------------------
+# GET /contexts/context.jsonld
+# -----------------------------------
+
+@contexts_ns.route("/context.jsonld")
+class Context(Resource):
+
+>>>>>>> 954e50c1e17e502380c6a365cfc7515d8c7d9639
+    def get(self):
+
+        context = load_json(CONTEXT_FILE)
+
+        return context, 200
+
+
+# -----------------------------------
+# GET /bins
+# -----------------------------------
+
+@bins_ns.route("/")
+class BinList(Resource):
+
+    @bins_ns.marshal_list_with(bin_model)
+    def get(self):
+
+        bins = load_json(BINS_FILE)
+
+        return bins
+
+
+# -----------------------------------
+# GET /bins/<bin_id>
+# -----------------------------------
+
+@bins_ns.route("/<string:bin_id>")
+
+@bins_ns.param(
+    "bin_id",
+    "The wastebin identifier"
+)
+
+@bins_ns.response(
+    404,
+    "Wastebin not found"
+)
+
+class Bin(Resource):
+
+    @bins_ns.marshal_with(bin_model)
+    def get(self, bin_id):
+
+        bins = load_json(BINS_FILE)
+
+        for bin_item in bins:
+
+            if bin_item["@id"] == bin_id:
+                return bin_item
+
+        api.abort(
+            404,
+            f"Wastebin {bin_id} not found"
+        )
+
+
+# -----------------------------------
+# GET /bins/<bin_id>/sensors
+# -----------------------------------
+
+@bins_ns.route("/<string:bin_id>/sensors")
+
+@bins_ns.param(
+    "bin_id",
+    "The wastebin identifier"
+)
+
+class BinSensors(Resource):
+
+    @bins_ns.marshal_list_with(sensor_model)
+    def get(self, bin_id):
+
+        sensors = load_json(SENSORS_FILE)
+
+        bin_sensors = []
+
+        for sensor in sensors:
+
+            hosted_by = sensor.get(
+                "sosa:isHostedBy",
+                {}
+            )
+
+            if hosted_by.get("@id") == bin_id:
+
+                bin_sensors.append(sensor)
+
+        return bin_sensors
+
+
+# -----------------------------------
+# GET /bins/<bin_id>/events
+# -----------------------------------
+
+@bins_ns.route("/<string:bin_id>/events")
+
+@bins_ns.param(
+    "bin_id",
+    "The wastebin identifier"
+)
+
+class BinEvents(Resource):
+
+    @bins_ns.expect(events_parser)
+
+    @bins_ns.marshal_list_with(event_model)
+    def get(self, bin_id):
+
+        args = events_parser.parse_args()
+
+        events = load_events(
+            EVENTS_FILE,
+            limit=args["limit"],
+            device_id=args["device_id"],
+            start=args["start"],
+            end=args["end"]
+        )
+
+        bin_events = []
+
+        for event in events:
+
+            if event.get("wastebin_id") == bin_id:
+
+                bin_events.append(event)
+
+        return bin_events
+
+
+# -----------------------------------
+# POST /bins/<bin_id>/emptied
+# -----------------------------------
+
+@bins_ns.route("/<string:bin_id>/emptied")
+
+@bins_ns.param(
+    "bin_id",
+    "The wastebin identifier"
+)
+
+class BinEmptied(Resource):
+
+    @bins_ns.expect(emptied_model)
+
+    @bins_ns.response(
+        201,
+        "Bin marked as emptied"
+    )
+
+    @bins_ns.response(
+        404,
+        "Bin not found"
+    )
+
+    def post(self, bin_id):
+
+        bins = load_json(BINS_FILE)
+
+        for bin_item in bins:
+
+            if bin_item["@id"] == bin_id:
+
+                data = request.get_json() or {}
+
+                bin_item["ck801:fillLevel"] = 0
+
+                current = bin_item.get(
+                    "ck801:timesEmptied",
+                    0
+                )
+
+                bin_item["ck801:timesEmptied"] = current + 1
+
+                save_json(BINS_FILE, bins)
+
+                record = {
+                    "bin_id": bin_id,
+                    "emptied_at": data.get(
+                        "emptied_at",
+                        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                    ),
+                    "emptied_by": data.get(
+                        "emptied_by",
+                        "unknown"
+                    )     
+                }
+                append_event(
+                        EMPTIED_FILE,
+                        record
+                    )
+                
+                # Publish MQTT message about the emptied bin status
+                mqtt_client.publish(
+                    f"smartbin/{bin_id}/status",
+                    json.dumps({
+                        "state": "emptied",
+                        "emptied_at": record["emptied_at"]
+                    }),
+                    qos=1,
+                    retain=True
+                )
+
+
+                return record, 201
+
+        api.abort(
+            404,
+            f"Wastebin {bin_id} not found"
+        )
+
+# -----------------------------------
+# GET /bins/<bin_id>/emptied-records
+# -----------------------------------
+@bins_ns.route("/<string:bin_id>/emptied-records")
+
+@bins_ns.param(
+    "bin_id",
+    "The wastebin identifier"
+)
+
+class BinEmptiedRecords(Resource):
+
+    @bins_ns.marshal_list_with(emptied_model)
+    def get(self, bin_id):
+
+        records = load_jsonl(EMPTIED_FILE)
+
+        bin_records = []
+
+        for record in records:
+
+            if record.get("bin_id") == bin_id:
+
+                bin_records.append(record)
+
+        return bin_records
+
+# -----------------------------------
+# GET /sensors
+# -----------------------------------
+
+@sensors_ns.route("/")
+class SensorList(Resource):
+
+    @sensors_ns.marshal_list_with(sensor_model)
+    def get(self):
+
+        sensors = load_json(SENSORS_FILE)
+
+        return sensors
+
+
+# -----------------------------------
+# GET /sensors/<sensor_id>
+# -----------------------------------
+
+@sensors_ns.route("/<string:sensor_id>")
+
+@sensors_ns.param(
+    "sensor_id",
+    "The sensor identifier"
+)
+
+@sensors_ns.response(
+    404,
+    "Sensor not found"
+)
+
+class Sensor(Resource):
+
+    @sensors_ns.marshal_with(sensor_model)
+    def get(self, sensor_id):
+
+        sensors = load_json(SENSORS_FILE)
+
+        for sensor in sensors:
+
+            if sensor["@id"] == sensor_id:
+                return sensor
+
+        api.abort(
+            404,
+            f"Sensor {sensor_id} not found"
+        )
+
+
+# -----------------------------------
+# GET /environment
+# -----------------------------------
+
+@environment_ns.route("/")
+class EnvironmentList(Resource):
+
+    @environment_ns.marshal_list_with(environment_model)
+    def get(self):
+
+        environment_data = load_json(
+            ENVIRONMENT_FILE
+        )
+
+        return environment_data
+
+
+# -----------------------------------
+# GET /environment/<environment_id>
+# -----------------------------------
+
+@environment_ns.route("/<string:environment_id>")
+
+@environment_ns.param(
+    "environment_id",
+    "The environment identifier"
+)
+
+@environment_ns.response(
+    404,
+    "Environment not found"
+)
+
+class Environment(Resource):
+
+    @environment_ns.marshal_with(environment_model)
+    def get(self, environment_id):
+
+        environment_data = load_json(
+            ENVIRONMENT_FILE
+        )
+
+        for env in environment_data:
+
+            if env["@id"] == environment_id:
+                return env
+
+        api.abort(
+            404,
+            f"Environment {environment_id} not found"
+        )
+
+
+# -----------------------------------
+# GET /environment/<id>/bins
+# -----------------------------------
+
+@environment_ns.route(
+    "/<string:environment_id>/bins"
+)
+
+class EnvironmentBins(Resource):
+
+    @environment_ns.marshal_list_with(bin_model)
+    def get(self, environment_id):
+
+        bins = load_json(BINS_FILE)
+
+        related_bins = []
+
+        for bin_item in bins:
+
+            located_in = bin_item.get(
+                "ck801:locatedIn",
+                {}
+            )
+
+            if located_in.get("@id") == environment_id:
+
+                related_bins.append(bin_item)
+
+        return related_bins
+
+
+# -----------------------------------
+# GET /events
+# POST /events
+# -----------------------------------
+
+@events_ns.route("/")
+class Events(Resource):
+
+    @events_ns.expect(events_parser)
+
+    @events_ns.marshal_list_with(event_model)
+    def get(self):
+
+        args = events_parser.parse_args()
+
+        events = load_events(
+            EVENTS_FILE,
+            limit=args["limit"],
+            device_id=args["device_id"],
+            start=args["start"],
+            end=args["end"]
+        )
+
+        return events
+
+    @events_ns.expect(event_model)
+
+    @events_ns.response(
+        201,
+        "Event stored successfully"
+    )
+
+    def post(self):
+
+        data = request.get_json()
+
+        if data is None:
+
+            api.abort(
+                400,
+                "JSON body is required"
+            )
+
+        required_fields = [
+            "device_id",
+            "event_type",
+            "wastebin_id"
+        ]
+
+        missing_fields = []
+
+        for field in required_fields:
+
+            if field not in data:
+
+                missing_fields.append(field)
+
+        if missing_fields:
+
+            api.abort(
+                400,
+                f"Missing required fields: {missing_fields}"
+            )
+
+        if "event_time" not in data:
+
+            data["event_time"] = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
+        append_event(EVENTS_FILE, data)
+
+        return data, 201
+
+
+# -----------------------------------
+# POST /mqtt/publish
+# -----------------------------------
+
+@mqtt_ns.route("/publish")
+class MQTTPublish(Resource):
+
+    @mqtt_ns.expect(mqtt_model)
+
+    @mqtt_ns.response(200, "Message published")
+
+    @mqtt_ns.response(400, "Invalid request")
+
+    def post(self):
+
+        data = request.get_json()
+
+        topic = data.get("topic")
+
+        payload = data.get("payload")
+
+        qos = data.get("qos", 1)
+
+        retain = data.get("retain", False)
+
+        if topic is None or payload is None:
+
+            api.abort(
+                400,
+                "Both 'topic' and 'payload' are required"
+            )
+
+        if qos not in [0, 1, 2]:
+
+            api.abort(
+                400,
+                "QoS must be 0, 1, or 2"
+            )
+
+        result = mqtt_client.publish(
+            topic,
+            payload,
+            qos=qos,
+            retain=retain
+        )
+
+        return {
+            "status": "published",
+            "topic": topic,
+            "payload": payload,
+            "qos": qos,
+            "retain": retain,
+            "mqtt_rc": result.rc
+        }, 200
+
+# -----------------------------------
+# GET /mqtt/topics
+# -----------------------------------
+
+@mqtt_ns.route("/topics")
+class MQTTTopics(Resource):
+
+    def get(self):
+
+        with topic_lock:
+
+            return {
+                "topic_count": len(topic_store),
+                "topics": list(topic_store.values())
+            }, 200
+
+
+# -----------------------------------
+# GET /mqtt/topics/<path:topic>
+# -----------------------------------
+
+@mqtt_ns.route("/topics/<path:topic>")
+
+@mqtt_ns.param(
+    "topic",
+    "MQTT topic path"
+)
+
+class MQTTTopicDetail(Resource):
+
+    @mqtt_ns.response(
+        404,
+        "Topic not found"
+    )
+
+    def get(self, topic):
+
+        with topic_lock:
+
+            if topic not in topic_store:
+
+                api.abort(
+                    404,
+                    f"No message received on topic '{topic}'"
+                )
+
+            return topic_store[topic], 200
+# -----------------------------------
+# Run app
+# -----------------------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+
+    app.run(
+        debug=False,
+        host="0.0.0.0",
+        port=5000
+    )
