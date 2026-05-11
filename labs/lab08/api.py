@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-from flask import Flask
-from flask_restx import Api, Resource, fields
-import json 
-import os 
-
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data") 
-EVENTS_FILE = os.path.join(DATA_DIR, "motion_events.jsonl") 
-# dir where the motion event data is stored
-=======
 from flask import Flask, request
 from flask_restx import Api, Resource, fields, reqparse
 from datetime import datetime, timezone
@@ -179,7 +169,6 @@ def append_event(filepath, event):
 # -----------------------------------
 # Flask app and API setup
 # -----------------------------------
->>>>>>> 954e50c1e17e502380c6a365cfc7515d8c7d9639
 
 app = Flask(__name__)
 
@@ -228,29 +217,6 @@ api = Api(
     description="Semantic REST API for Smart Wastebin IoT System",
 )
 
-<<<<<<< HEAD
-ns = api.namespace("bins", description="Wastebin operations") 
-# namespace : logical grouping of related API endpoints under the "/bins" path, with a description for documentation purposes
-
-bin_model = api.model("Bin", {
-    "id": fields.String(required=True, description="Bin unique identifier"),
-    "name": fields.String(description="Human-readable name"),
-    "location": fields.String(description="Deployment location"),
-    "status": fields.String(description="Current status"),
-})
-
-event_model = api.model("Event", {
-    "resultTime": fields.String(description="ISO timestamp of the event"),
-    "madeBySensor": fields.String(description="Sensor ID that produced this event"),
-    "hasSimpleResult": fields.String(description="Motion state (detected/clear)"),
-    "pipeline_latency_ms": fields.Float(description="Pipeline latency in ms"),
-})
-
-
-@ns.route("/")
-class BinList(Resource):
-    '''Endpoint for listing all registered bins. Currently returns an empty list as a placeholder.'''
-=======
 
 # -----------------------------------
 # Swagger Models
@@ -408,7 +374,6 @@ contexts_ns = api.namespace(
 @contexts_ns.route("/context.jsonld")
 class Context(Resource):
 
->>>>>>> 954e50c1e17e502380c6a365cfc7515d8c7d9639
     def get(self):
 
         context = load_json(CONTEXT_FILE)
@@ -967,3 +932,4 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=5000
     )
+   
