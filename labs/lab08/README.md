@@ -73,7 +73,29 @@ A screenshot of our rendered AsyncAPI documentation follows
 ![alt text](part6.png)
 We use some of these parameters in every example, acording to the command.
 ## Test the curl:
-
+a)list with all bins
+```
+iotlab_upat_6@iotlab-Upat-6:~ $ curl -X GET http://192.168.137.180:5000/bins/
+[{"@id": "wastebin-01", "@type": ["Product", "Wastebin"], "name": "Wastebin 01", "description": "plastic wastebin", "ck801:material": "plastic", "ck801:capacityLiters": 0.5, "ck801:color": "grey", "ck801:wasteType": "paper", "ck801:collectionZone": "Zone A", "ck801:status": "active", "ck801:fillLevel": 0, "ck801:timesEmptied": 0}]
+```
+b)publish mqtt message
+```
+otlab_upat_6@iotlab-Upat-6:~ $ curl -X POST http://192.168.137.180:5000/mqtt/publish \
+-H "Content-Type: application/json" \
+-d '{
+  "topic": "smartbin/test",
+  "payload": "hello world",
+  "qos": 1,
+  "retain": false
+}'
+{"status": "published", "topic": "smartbin/test", "payload": "hello world", "qos": 1, "retain": false, "mqtt_rc": 0}
+iotlab_upat_6@iotlab-Upat-6:~ $
+```
+c) Message for a bin that does not exist
+```
+iotlab_upat_6@iotlab-Upat-6:~ $ curl -X GET http://192.168.137.180:5000/bins/wastebin-23
+{"message": "Wastebin wastebin-23 not found"}
+iotlab_upat_6@iotlab-Upat-6:~ $
 
 # SECTION B - REPORT
 ## RQ1
@@ -207,7 +229,34 @@ Description of each channel:
 | **Direction** | Two-way (POST to ingest, GET to retrieve) | One-way (sensor → broker → subscriber) |
  
 - The fields overlap (`device_id`, `event_time`, `motion_state`), but `event_model` serves a pull-based REST context while `MotionEvent` serves a push-based async context.
-
+## RQ17
+a)
+```
+iotlab_upat_6@iotlab-Upat-6:~ $ curl -X GET http://192.168.137.180:5000/bins/
+[{"@id": "wastebin-01", "@type": ["Product", "Wastebin"], "name": "Wastebin 01", "description": "plastic wastebin", "ck801:material": "plastic", "ck801:capacityLiters": 0.5, "ck801:color": "grey", "ck801:wasteType": "paper", "ck801:collectionZone": "Zone A", "ck801:status": "active", "ck801:fillLevel": 0, "ck801:timesEmptied": 0}]
+```
+b)
+```
+otlab_upat_6@iotlab-Upat-6:~ $ curl -X POST http://192.168.137.180:5000/mqtt/publish \
+-H "Content-Type: application/json" \
+-d '{
+  "topic": "smartbin/test",
+  "payload": "hello world",
+  "qos": 1,
+  "retain": false
+}'
+{"status": "published", "topic": "smartbin/test", "payload": "hello world", "qos": 1, "retain": false, "mqtt_rc": 0}
+iotlab_upat_6@iotlab-Upat-6:~ $
+```
+c) 
+```
+iotlab_upat_6@iotlab-Upat-6:~ $ curl -X GET http://192.168.137.180:5000/bins/wastebin-23
+{"message": "Wastebin wastebin-23 not found"}
+iotlab_upat_6@iotlab-Upat-6:~ $
+```
+## RQ18
+Use Swagger UI when we want to explore the API interactively, inspect schemas, or quickly test an endpoint during development — ideal for demos and first-time discovery.
+Use curl when we need to automate requests, reproduce an exact call, integrate tests into a script, or test from a remote machine — ideal for testing pipelines and production verification.
 ## RQ19
 We would give them the Swagger UI (OpenAPI) for REST endpoints and the AsyncAPI spec for MQTT events. Swagger shows how to read and update bin data and report when bins are full, while AsyncAPI shows real-time bin status updates via MQTT topics.
 ## RQ20
