@@ -70,7 +70,7 @@ A screenshot of our rendered AsyncAPI documentation follows
 ![alt text](im10_8.png)
 ![alt text](im11_8.png)
 ## Part 6 — Test with Swagger UI and curl
-
+![alt text](part6.png)
 
 ## Test the curl:
 
