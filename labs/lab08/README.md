@@ -77,8 +77,6 @@ We use some of these parameters in every example, acording to the command.
 
 # SECTION B - REPORT
 ## RQ1
-# RQ1: Πλήρης Σχεδιασμός API
-
 | Method | URI | Παράμετροι | Επιστρέφει |
 |--------|-----|------------|------------|
 | GET | `/contexts/context.jsonld` | — | JSON-LD context |
@@ -149,6 +147,18 @@ These apply to both `GET /events` and `GET /bins/<bin_id>/events`.
 ## RQ7
 `api.model` in Flask-RESTx defines the structure of request and response data. These models are automatically used to generate the Swagger UI documentation.
 When we add a new field to a model, the Swagger UI updates automatically to show the new field in the endpoint documentation, including type and description.
+## RQ8
+![alt text](im1_8.png)
+![alt text](im2_8.png)
+![alt text](im3_8.png)
+![alt text](im4_8.png)
+![alt text](im5_8.png)
+![alt text](im6_8.png)
+![alt text](im7_8.png)
+![alt text](im8_8.png)
+
+
+
 ## RQ9
 `POST /mqtt/publish` receives a topic and message from an HTTP request and publishes the message to the MQTT broker.
 ## RQ10
