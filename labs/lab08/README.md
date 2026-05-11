@@ -57,7 +57,18 @@ We connected the API to our MQTT broker in order to be able to publish messages 
 
 ## Part 5 — Document your MQTT interface with AsyncAPI
 A screenshot of our rendered AsyncAPI documentation follows
-
+## Screenshots from our API
+![alt text](im1_8.png)
+![alt text](im2_8.png)
+![alt text](im3_8.png)
+![alt text](im4_8.png)
+![alt text](im5_8.png)
+![alt text](im6_8.png)
+![alt text](im7_8.png)
+![alt text](im8_8.png)
+![alt text](im9_8.png)
+![alt text](im10_8.png)
+![alt text](im11_8.png)
 ## Part 6 — Test with Swagger UI and curl
 
 
