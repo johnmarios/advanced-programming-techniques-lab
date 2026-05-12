@@ -92,7 +92,7 @@ def main():
 
     parser.add_argument(
         "--subscribe-topic",
-        default="smartbin/bin-01/pir-01/events",
+        default="environments/+/wastebins/wastebin-01/sensors/pir-01/#",
         help="MQTT topic to subscribe to"
     )
 

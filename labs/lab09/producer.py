@@ -31,17 +31,6 @@ def epoch_to_utc_iso(epoch_seconds: float) -> str:
     return datetime.fromtimestamp(epoch_seconds, tz=timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
-def normalize_entity_id(value: str, default_prefix: str = "urn:dev:team-06:") -> str:
-
-    '''Normalize an entity ID by ensuring it starts with a URN prefix. 
-    If the value already starts with "urn:", it is returned unchanged. 
-    Otherwise, the default prefix is prepended to the value.'''
-
-    if value.startswith("urn:"):
-        return value
-    return f"{default_prefix}{value}"
-
-
 def create_event(
     event_time: str,
     device_id: str,
@@ -57,9 +46,9 @@ def create_event(
         "@context": context_iri,
         "@type": "sosa:Observation",
         "event_time": event_time,
-        "device_id": normalize_entity_id(device_id),
-        "wastebin_id": normalize_entity_id(wastebin_id),
-        "environment_id": normalize_entity_id(environment_id),
+        "device_id": device_id,
+        "wastebin_id": wastebin_id,
+        "environment_id": environment_id,
         "event_type": event_type,
         "motion_state": motion_state,
         "seq": seq,
@@ -247,7 +236,7 @@ class Producer:
             # Publish initial status for the wastebin (inactive)
             status_payload = {
                 "state": "active",
-                "location": "Lab Room",
+                "location": "Kypes",
                 "last_motion": None,
                 "total_events_today": 0
             }
@@ -294,7 +283,7 @@ class Producer:
                     if event.get("kind") == "motion_detected":
                         status_payload = {
                             "state": "active",
-                            "location": "Lab Room",
+                            "location": "Kypes",
                             "last_motion": event_time,
                             "total_events_today": self.seq
                         }
