@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument("--out", required=True)
 	parser.add_argument("--cache-size", type=int, default=100)
 	parser.add_argument("--consumer-delay", type=float, default=0.0) # Delay between processing messages (seconds)
-	parser.add_argument("--duration", type=float, default=60.0) # Total duration to run the consumer (seconds, >0), or 0 for infinite
+	parser.add_argument("--duration", type=float, default=320.0) # Total duration to run the consumer (seconds, >0), or 0 for infinite
 	parser.add_argument("--verbose", action="store_true")
 	return parser.parse_args()
 
