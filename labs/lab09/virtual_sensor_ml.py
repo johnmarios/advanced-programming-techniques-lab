@@ -4,6 +4,7 @@ import time
 import argparse
 import joblib
 import numpy as np
+import pandas as pd
 
 from datetime import datetime, timezone
 
@@ -29,12 +30,12 @@ def predict_next_hour(model):
     is_weekend = 1 if day_of_week in [5, 6] else 0
 
     # Feature vector
-    features = np.array([
-        [
-            day_of_week,
-            next_hour,
-            is_weekend
-        ]
+    features = pd.DataFrame([
+        {
+            "day_of_week": day_of_week,
+            "hour": next_hour,
+            "is_weekend": is_weekend
+        }
     ])
 
     # Prediction
