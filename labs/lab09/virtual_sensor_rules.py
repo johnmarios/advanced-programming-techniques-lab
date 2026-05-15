@@ -32,8 +32,8 @@ def on_message(client, userdata, message):
         If your sender publishes plain text instead:
         detected
 
-        then replace the JSON parsing logic with:
-            if data["motion_state"] == "detected":
+        then use:
+            if payload_text == "detected":
         """
 
         if data["motion_state"] == "detected":
@@ -70,6 +70,34 @@ def evaluate_usage(window_minutes=10):
 
     else:
         return "high", count
+
+def publish_ha_discovery(client):
+    config_payload = {
+        "name": "Wastebin Usage Level",
+        "state_topic": "smartbin/bin-01/usage",
+        "value_template": "{{ value_json.usageLevel }}",
+        "json_attributes_topic": "smartbin/bin-01/usage",
+        "unique_id": "wastebin_01_usage_level",
+        "icon": "mdi:chart-bar",
+
+        "availability_topic": "smartbin/bin-01/usage/status",
+        "payload_available": "online",
+        "payload_not_available": "offline",
+
+        "device": {
+            "identifiers": ["bin-01"],
+            "name": "Smart Wastebin 01",
+            "model": "Virtual Sensor",
+            "manufacturer": "Team 06"
+        }
+    }
+
+    client.publish(
+        "homeassistant/sensor/wastebin_01_usage/config",
+        json.dumps(config_payload),
+        qos=1,
+        retain=True
+    )
 
 
 def main():
@@ -133,6 +161,18 @@ def main():
     # Start background MQTT loop
     client.loop_start()
 
+    # Publish Home Assistant discovery config
+    publish_ha_discovery(client)
+
+
+    # Publish initial availability status
+    client.publish(
+        "smartbin/bin-01/usage/status",
+        "online",
+        qos=1,
+        retain=True
+    )
+
     print("========================================")
     print("Virtual Sensor Rules Engine Started")
     print(f"Subscribed topic : {args.subscribe_topic}")
@@ -172,6 +212,14 @@ def main():
         print("\nStopping virtual sensor...")
 
     finally:
+        # Publish offline status
+        client.publish(
+            "smartbin/bin-01/usage/status",
+            "offline",
+            qos=1,
+            retain=True
+        )
+
         client.loop_stop()
         client.disconnect()
 
