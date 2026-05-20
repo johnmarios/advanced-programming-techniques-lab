@@ -206,6 +206,28 @@ class Producer:
             retain=True
         )
 
+        # we can publish a sensor configuration for the activity level (active/inactive) based on the wastebin status 
+        # output from node red
+        client.publish(
+            "homeassistant/sensor/bin01_activity/config",
+            json.dumps({
+                "name": "Bin 01 Activity Level",
+                "state_topic": "smartbin/bin-01/alerts",
+                "value_template": "{{ value_json.activity_level }}",
+                "json_attributes_topic": "smartbin/bin-01/alerts",
+                "unique_id": "bin01_activity_level",
+                "icon": "mdi:motion-sensor",
+
+                "device": {
+                    "identifiers": ["bin-01"],
+                    "name": "Smart Wastebin 01",
+                    "model": "Smart Wastebin v1",
+                    "manufacturer": "Team 06"
+                }
+            }),
+            retain=True
+        )
+
     def produce(self):
         try:
             self.client.connect(self.args.broker, self.args.port, 60) # 60 is the keepalive interval in seconds
