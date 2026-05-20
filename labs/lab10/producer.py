@@ -209,13 +209,13 @@ class Producer:
         # we can publish a sensor configuration for the activity level (active/inactive) based on the wastebin status 
         # output from node red
         client.publish(
-            "homeassistant/sensor/bin01_activity/config",
+            "homeassistant/sensor/wastebin_01_activity_level/config",
             json.dumps({
-                "name": "Bin 01 Activity Level",
+                "name": "Activity Level",
                 "state_topic": "smartbin/bin-01/alerts",
                 "value_template": "{{ value_json.activity_level }}",
                 "json_attributes_topic": "smartbin/bin-01/alerts",
-                "unique_id": "bin01_activity_level",
+                "unique_id": "wastebin_01_activity_level",
                 "icon": "mdi:motion-sensor",
 
                 "device": {
