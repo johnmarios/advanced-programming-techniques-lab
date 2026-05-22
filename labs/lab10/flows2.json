@@ -1,0 +1,247 @@
+[
+    {
+        "id": "ab1b0ea518202bba",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "3442743711316c35",
+        "type": "mqtt in",
+        "z": "ab1b0ea518202bba",
+        "name": "",
+        "topic": "environments/environment-01/wastebins/wastebin-01/sensors/pir-01/events",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "8dfeaf083c7d1ada",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 300,
+        "y": 160,
+        "wires": [
+            [
+                "f9567001f8e1e427"
+            ]
+        ]
+    },
+    {
+        "id": "c0c55b5e868ab60c",
+        "type": "debug",
+        "z": "ab1b0ea518202bba",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "f9567001f8e1e427",
+        "type": "switch",
+        "z": "ab1b0ea518202bba",
+        "name": "",
+        "property": "payload.motion_state",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "detected",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 610,
+        "y": 240,
+        "wires": [
+            [
+                "1f1c7a31bde58a5e"
+            ]
+        ]
+    },
+    {
+        "id": "1f1c7a31bde58a5e",
+        "type": "function",
+        "z": "ab1b0ea518202bba",
+        "name": "function 1",
+        "func": "let eventLog = flow.get(\"motion_events\");\n\n// Initialize event log if it does not exist\nif (!eventLog) {\n    eventLog = [];\n}\n\nconst currentTime = Date.now();\nconst windowSizeMinutes = 2;\nconst timeWindow = windowSizeMinutes * 60 * 1000;\n\n// Add current timestamp\neventLog.push(currentTime);\n\n// Remove events older than or equal to 10 minutes\neventLog = eventLog.filter(eventTime => {\n    return (currentTime - eventTime) < timeWindow;\n});\n\n// Save updated log\nflow.set(\"motion_events\", eventLog);\n\nconst eventCount = eventLog.length;\n\nlet activityLevel;\n\n// Determine activity level\nif (eventCount === 0) {\n    activityLevel = \"idle\";\n} else if (eventCount <= 2) {\n    activityLevel = \"low\";\n} else if (eventCount <= 5) {\n    activityLevel = \"medium\";\n} else {\n    activityLevel = \"high\";\n}\n\n// Create message payload\nmsg.payload = {\n    activity_level: activityLevel,\n    event_count: eventCount,\n    window_size_minutes: windowSizeMinutes,\n    evaluation_timestamp: new Date(currentTime).toISOString()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 280,
+        "wires": [
+            [
+                "c0c55b5e868ab60c",
+                "d7eace35ea90e1e4",
+                "322df7dccf748bef",
+                "5d82c7a112eaa9a6"
+            ]
+        ]
+    },
+    {
+        "id": "d7eace35ea90e1e4",
+        "type": "mqtt out",
+        "z": "ab1b0ea518202bba",
+        "name": "",
+        "topic": "smartbin/bin-01/usage/nodered",
+        "qos": "",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "8dfeaf083c7d1ada",
+        "x": 1070,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "322df7dccf748bef",
+        "type": "switch",
+        "z": "ab1b0ea518202bba",
+        "name": "",
+        "property": "payload.activity_level",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "high",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 910,
+        "y": 380,
+        "wires": [
+            [
+                "3fd707046743906f",
+                "e491c43525235859"
+            ]
+        ]
+    },
+    {
+        "id": "3fd707046743906f",
+        "type": "debug",
+        "z": "ab1b0ea518202bba",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1120,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "6c88f17a33629253",
+        "type": "http request",
+        "z": "ab1b0ea518202bba",
+        "name": "",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://webhook.site/8f417b70-cf6f-4769-866f-5bc8e2d79f16",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1130,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e491c43525235859",
+        "type": "function",
+        "z": "ab1b0ea518202bba",
+        "name": "function 2",
+        "func": "msg.payload = {\n    text: \"Wastebin bin-01 usage is HIGH (\" + msg.payload.event_count + \" events in 10 min)\"\n};\nmsg.headers = {\"Content-Type\": \"Smart-Wastebin/json\"};\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1100,
+        "y": 420,
+        "wires": [
+            [
+                "6c88f17a33629253"
+            ]
+        ]
+    },
+    {
+        "id": "5d82c7a112eaa9a6",
+        "type": "mqtt out",
+        "z": "ab1b0ea518202bba",
+        "name": "",
+        "topic": "smartbin/bin-01/alerts",
+        "qos": "",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "8dfeaf083c7d1ada",
+        "x": 820,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "8dfeaf083c7d1ada",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]
