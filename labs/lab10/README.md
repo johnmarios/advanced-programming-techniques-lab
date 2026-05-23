@@ -190,38 +190,7 @@ Yes, Node-RED could replace the Python producer because Node-RED can directly re
 
 ## RQ11
 
-+-------------------+
-|   PIR Sensor      |
-+---------+---------+
-          |
-          v
-+-------------------+
-| Python Producer   |
-| (reads sensor &   |
-| publishes MQTT)   |
-+---------+---------+
-          |
-          v
-     +-------------+
-     | MQTT Broker |
-     +------+------+ 
-            |
-   +--------+---------+
-   |                  |
-   v                  v
-+---------------+   +------------------+
-| Python        |   | Node-RED Flow    |
-| Consumer      |   | (logic, routing, |
-|               |   | automation)      |
-+---------------+   +--------+---------+
-                             |
-               +-------------+-------------+
-               |                           |
-               v                           v
-   +----------------------+   +-------------------+
-   | Home Assistant       |   | REST API (Flask)  |
-   | dashboards & rules   |   | external access   |
-   +----------------------+   +-------------------+
+![alt text](diagram.png)
 
 ## RQ12
 
