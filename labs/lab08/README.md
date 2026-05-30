@@ -96,9 +96,12 @@ c) Message for a bin that does not exist
 iotlab_upat_6@iotlab-Upat-6:~ $ curl -X GET http://192.168.137.180:5000/bins/wastebin-23
 {"message": "Wastebin wastebin-23 not found"}
 iotlab_upat_6@iotlab-Upat-6:~ $
+```
 
 # SECTION B - REPORT
+
 ## RQ1
+
 | Method | URI | Παράμετροι | Επιστρέφει |
 |--------|-----|------------|------------|
 | GET | `/contexts/context.jsonld` | — | JSON-LD context |
